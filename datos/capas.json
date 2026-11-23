@@ -1,0 +1,69 @@
+[
+ {
+  "id": "lc2023",
+  "anio": 2023,
+  "nombre": "Mapa LC Sentinel 2023",
+  "fuente": "LC_SENTINEL_20231.tif (clases tipo Esri/IO LULC, 10 m), usado en el INGEI 2023",
+  "imagen": "datos/capa_lc2023.png",
+  "limites": [
+   [
+    13.1379333330282,
+    -90.1415998445843
+   ],
+   [
+    14.462106639036383,
+    -87.68395192804665
+   ]
+  ],
+  "clases": [
+   {
+    "v": 1,
+    "nombre": "Agua",
+    "color": "#2f7fc1",
+    "ipcc": "W"
+   },
+   {
+    "v": 2,
+    "nombre": "Árboles",
+    "color": "#2e7d32",
+    "ipcc": "F"
+   },
+   {
+    "v": 4,
+    "nombre": "Vegetación inundada",
+    "color": "#5fa8a0",
+    "ipcc": "W"
+   },
+   {
+    "v": 5,
+    "nombre": "Cultivos",
+    "color": "#e2b53a",
+    "ipcc": "C"
+   },
+   {
+    "v": 7,
+    "nombre": "Construido",
+    "color": "#c8312b",
+    "ipcc": "S"
+   },
+   {
+    "v": 8,
+    "nombre": "Suelo desnudo",
+    "color": "#a8957c",
+    "ipcc": "O"
+   },
+   {
+    "v": 10,
+    "nombre": "Nubes (sin dato)",
+    "color": "#d9dde3",
+    "ipcc": null
+   },
+   {
+    "v": 11,
+    "nombre": "Pastizal / arbustal",
+    "color": "#a9c46a",
+    "ipcc": "G"
+   }
+  ]
+ }
+]

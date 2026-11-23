@@ -1,0 +1,73 @@
+{
+ "anio": 2016,
+ "nombre": "Mapa oficial MARN 2016",
+ "fuente": "Cobertura_2016_MARN (RapidEye 2015-2016), agregado a 11 clases INGEI",
+ "clases": [
+  {
+   "v": 1,
+   "nombre": "Bosque latifoliado",
+   "color": "#1a7a1a",
+   "ipcc": "F"
+  },
+  {
+   "v": 2,
+   "nombre": "Bosque de coníferas",
+   "color": "#6b8e23",
+   "ipcc": "F"
+  },
+  {
+   "v": 3,
+   "nombre": "Bosque salado (manglar)",
+   "color": "#8b0000",
+   "ipcc": "F"
+  },
+  {
+   "v": 4,
+   "nombre": "Café",
+   "color": "#4f4782",
+   "ipcc": "F"
+  },
+  {
+   "v": 5,
+   "nombre": "Caña de azúcar",
+   "color": "#00e6a9",
+   "ipcc": "C"
+  },
+  {
+   "v": 6,
+   "nombre": "Frutales",
+   "color": "#ffebaf",
+   "ipcc": "C"
+  },
+  {
+   "v": 7,
+   "nombre": "Otras agrícolas",
+   "color": "#e6e600",
+   "ipcc": "C"
+  },
+  {
+   "v": 8,
+   "nombre": "Pastizales",
+   "color": "#c2b800",
+   "ipcc": "G"
+  },
+  {
+   "v": 9,
+   "nombre": "Vegetación arbustiva",
+   "color": "#c29ed7",
+   "ipcc": "G"
+  },
+  {
+   "v": 10,
+   "nombre": "Humedales y agua",
+   "color": "#005ce6",
+   "ipcc": "W"
+  },
+  {
+   "v": 11,
+   "nombre": "Asentamientos",
+   "color": "#ff0000",
+   "ipcc": "S"
+  }
+ ]
+}
