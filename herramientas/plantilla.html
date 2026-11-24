@@ -66,6 +66,8 @@ h2 { font: 650 0.74rem/1.2 var(--f-display); text-transform: uppercase; letter-s
 .capa.pend .f { color: var(--warn); }
 .fila { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 label.chk { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+.vercap { display: grid; gap: 8px; padding: 10px 12px; border: 1px solid var(--line, rgba(0,0,0,.12)); border-radius: 8px; }
+.vercap input[type=range] { flex: 1; accent-color: var(--accent); }
 label.chk input { accent-color: var(--accent); }
 select { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; max-width: 100%; }
 select:focus-visible, input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -358,6 +360,23 @@ header.top nav a:focus-visible { outline: 2px solid var(--accent); outline-offse
         <label>Periodo B <select id="selB"></select></label>
       </div>
       <label class="fila nota">Territorio <select id="selTerrC" aria-label="Territorio"></select></label>
+      <div class="vercap">
+        <label class="fila nota">Mapa base
+          <select id="selBase2" aria-label="Mapa base de la comparación">
+            <option value="ninguno">Sin mapa base</option>
+            <option value="sat">Satélite (Esri)</option>
+            <option value="osm">Calles (OpenStreetMap)</option>
+          </select>
+        </label>
+        <div class="fila">
+          <label class="chk"><input type="checkbox" id="chkA" checked> Ver capa A</label>
+          <label class="chk"><input type="checkbox" id="chkB" checked> Ver capa B</label>
+        </div>
+        <label class="chk"><input type="checkbox" id="chkDeptos2" checked> Límites de departamentos</label>
+        <label class="fila nota">Transparencia <input type="range" id="opC" min="0" max="90" step="10" value="0" aria-label="Transparencia de las capas"> <span id="opCv">0 %</span></label>
+        <p class="nota" style="margin:0">Apaga A y B, o súbeles la transparencia, para ver la imagen satelital debajo y evaluar.</p>
+        <p class="aviso" id="avisoBase2" hidden>El mapa base no cargó aquí. Esta vista previa bloquea imágenes de otros sitios; al publicar el visor en GitHub Pages sí se ve.</p>
+      </div>
       <hr>
       <div>
         <h3 style="font:700 1.05rem/1.2 var(--f-display);margin:0 0 10px">Diferencia en la superficie</h3>
@@ -768,6 +787,30 @@ header.top nav a:focus-visible { outline: 2px solid var(--accent); outline-offse
     st.appendChild(new Option('Todo el país', 'todo'));
     deptos.features.map(f => f.properties).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')).forEach(p => st.appendChild(new Option(p.nombre, p.id)));
     st.addEventListener('change', e => { elegirTerrC(e.target.value); comparar(); });
+    // mapa base propio de esta vista, y capas A/B que se pueden apagar o volver transparentes
+    const bases2 = {
+      osm: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }),
+      sat: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, attribution: 'Imágenes © Esri' })
+    };
+    let base2 = null;
+    Object.values(bases2).forEach(b => b.on('tileerror', () => { document.getElementById('avisoBase2').hidden = false; }));
+    document.getElementById('selBase2').addEventListener('change', e => {
+      if (base2) map2.removeLayer(base2);
+      base2 = bases2[e.target.value] || null; document.getElementById('avisoBase2').hidden = true;
+      if (base2) base2.addTo(map2);
+    });
+    const verCapas = () => {
+      const op = 1 - document.getElementById('opC').value / 100;
+      document.getElementById('opCv').textContent = document.getElementById('opC').value + ' %';
+      [['izq', 'chkA'], ['der', 'chkB']].forEach(([p, c]) => {
+        const pane = map2.getPane(p);
+        pane.style.display = document.getElementById(c).checked ? '' : 'none';
+        pane.style.opacity = op;
+      });
+    };
+    ['chkA', 'chkB'].forEach(c => document.getElementById(c).addEventListener('change', verCapas));
+    document.getElementById('opC').addEventListener('input', verCapas);
+    document.getElementById('chkDeptos2').addEventListener('change', e => { map2.getPane('deptos').style.display = e.target.checked ? '' : 'none'; });
     comparar();
   }
   function elegirTerrC(id) {
