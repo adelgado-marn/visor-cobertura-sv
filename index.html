@@ -911,8 +911,15 @@ table.rep tr.n2 td { color: var(--muted); } table.rep tr.n2 td:nth-child(2) { pa
 .pend b { display: block; font: 650 0.95rem/1.3 var(--f-display); }
 .pend small { color: var(--muted); font-size: 0.84rem; }
 .est { font: 600 0.72rem/1 var(--f-text); text-transform: uppercase; letter-spacing: 0.05em; color: var(--warn); background: var(--warn-soft); padding: 5px 7px; border-radius: 4px; text-align: center; }
+.kpi5 { gap: 10px 24px; }
+.leyI i.pd { width: 3px; height: 14px; border-radius: 0; background: repeating-linear-gradient(var(--warn) 0 2px, transparent 2px 5px); }
+.serie .pendl { stroke: var(--warn); stroke-width: 1; stroke-dasharray: 2 4; }
+.serie .pendt { fill: var(--warn); font-size: 10px; }
+#tablaSerie small { color: var(--muted); font-size: 0.7rem; }
+.sub4 { font: 700 1rem/1.25 var(--f-display); margin: 8px 0 0; }
+.metodo { margin: 0; padding-left: 18px; line-height: 1.6; max-width: 90ch; }
 .est.ok { color: var(--accent); background: var(--accent-soft); }
-@media (max-width: 600px) { .ing-sec { padding: 14px; } .pend li { grid-template-columns: 1fr; } .ing-head { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .serie { overflow-x: auto; } .serie svg { min-width: 620px; } .ing-sec { padding: 14px; } .pend li { grid-template-columns: 1fr; } .ing-head { grid-template-columns: 1fr; } }
 @media (max-width: 980px) { .ley-grid { grid-template-columns: 1fr; } }
 @media (max-width: 820px) {
   header.top nav { margin-left: 0; width: 100%; }
@@ -1139,6 +1146,8 @@ table.rep tr.n2 td { color: var(--muted); } table.rep tr.n2 td:nth-child(2) { pa
           <option value="2001|2011">2001 → 2011</option>
           <option value="2011|2018" selected>2011 → 2018</option>
           <option value="2001|2018">2001 → 2018</option>
+          <option disabled>2018 → 2020 (pendiente: mapa 2020)</option>
+          <option disabled>2020 → 2025 (pendiente: mapa 2025)</option>
         </select></label>
         <div id="matrizI"></div>
       </section>
@@ -1164,6 +1173,15 @@ table.rep tr.n2 td { color: var(--muted); } table.rep tr.n2 td:nth-child(2) { pa
           <li><span class="est">Pendiente</span><div><b>Área quemada por año</b><small>Incendios en bosque y en otras tierras.</small></div></li>
           <li><span class="est">Pendiente</span><div><b>Regla para las idas y vueltas</b><small>Por ejemplo, bosque → pasto → bosque en pocos años, que suele ser un error de interpretación.</small></div></li>
           <li><span class="est">Pendiente</span><div><b>Acuerdo de años y nota de método</b><small>Qué años se entregan, cómo se reparte el cambio año por año (incluido 2024) y qué fuente se usó en cada año.</small></div></li>
+        </ul>
+        <h4 class="sub4">Cómo se calcula en la versión final</h4>
+        <ul class="metodo">
+          <li><b>Una sola fuente de áreas:</b> la malla reinterpretada. Los mapas sirven para ubicar los cambios y verificarlos.</li>
+          <li><b>Margen de error:</b> como muestreo por conglomerados en la malla, y la exactitud de cada mapa con el método de Olofsson (compara el mapa con puntos revisados a ojo).</li>
+          <li><b>Ventana de 20 años:</b> una tierra convertida se reporta como "convertida" durante 20 años.</li>
+          <li><b>Regla de idas y vueltas:</b> se revisan los cambios que se deshacen en pocos años antes de contarlos.</li>
+          <li><b>Sin cambios falsos:</b> no se calculan cambios entre el mapa oficial 2016 y los mapas Sentinel, porque vienen de métodos distintos.</li>
+          <li><b>Incendios:</b> área quemada por año, aparte.</li>
         </ul>
       </section>
     </div>
@@ -1725,9 +1743,10 @@ table.rep tr.n2 td { color: var(--muted); } table.rep tr.n2 td:nth-child(2) { pa
       const relCat = (d.ic(d.cnt[2018][y] || 0) / ((d.cnt[2018][y] || 0) * 100)) || 0;
       const relConv = x => { const k = ((d.T['2001|2018'][x] || {})[y]) || 0; return k ? d.ic(k) / (k * 100) : null; };
       filas.push({ cod: COD_REP[y] + '.1', nom: `${mayus(NOM_MIN[y])} que permanecen como tales`, v: mant, rel: relCat, nivel: 1, k: y });
-      filas.push({ cod: COD_REP[y] + '.2', nom: `Tierras convertidas en ${NOM_MIN[y]}`, v: sumConv, rel: null, nivel: 1, k: y });
+      filas.push({ anual: d.cats.reduce((z, x) => z + (x !== y ? (((t > 2001 && t <= 2011 ? d.R1 : d.R2)[x] || {})[y] || 0) : 0), 0), cod: COD_REP[y] + '.2', nom: `Tierras convertidas en ${NOM_MIN[y]}`, v: sumConv, rel: null, nivel: 1, k: y });
       let i = 0;
-      IPCC.forEach(c => { if (c.k === y) return; i++; if (conv[c.k]) filas.push({ cod: `${COD_REP[y]}.2.${i}`, nom: `${mayus(NOM_MIN[c.k])} convertidos en ${NOM_MIN[y]}`.replace('Tierras de cultivo convertidos', 'Tierras de cultivo convertidas').replace('Tierras forestales convertidos', 'Tierras forestales convertidas').replace('Otras tierras convertidos', 'Otras tierras convertidas'), v: conv[c.k], rel: relConv(c.k), nivel: 2, k: y }); });
+      const Rt = t > 2001 && t <= 2011 ? d.R1 : d.R2;
+      IPCC.forEach(c => { if (c.k === y) return; i++; if (conv[c.k]) filas.push({ anual: ((Rt[c.k] || {})[y]) || 0, cod: `${COD_REP[y]}.2.${i}`, nom: `${mayus(NOM_MIN[c.k])} convertidos en ${NOM_MIN[y]}`.replace('Tierras de cultivo convertidos', 'Tierras de cultivo convertidas').replace('Tierras forestales convertidos', 'Tierras forestales convertidas').replace('Otras tierras convertidos', 'Otras tierras convertidas'), v: conv[c.k], rel: relConv(c.k), nivel: 2, k: y }); });
       filas.push({ cod: COD_REP[y], nom: 'Total ' + NOM_MIN[y], v: total, rel: relCat, nivel: 0, k: y });
     });
     return filas;
@@ -1749,6 +1768,7 @@ table.rep tr.n2 td { color: var(--muted); } table.rep tr.n2 td:nth-child(2) { pa
       s += `<polyline class="ln" style="stroke:${COL[k]}" points="${pts.join(' ')}"/>`;
       ANIOS_OBS.forEach(a => s += `<circle class="pt" cx="${X(a)}" cy="${Y(d.serie[a][k])}" r="4.5" style="fill:${COL[k]}"/>`);
     });
+    [2020, 2025].forEach(t => s += `<line class="pendl" x1="${X(t)}" x2="${X(t)}" y1="${m.t + 22}" y2="${m.t + h}"/><text class="zt pendt" x="${X(t) - 4}" y="${m.t + 34}" style="text-anchor:end">mapa ${t}</text>`);
     s += `<line class="cruz" id="cruzI" y1="${m.t}" y2="${m.t + h}" x1="-10" x2="-10"/><rect class="hit" x="${m.l}" y="${m.t}" width="${w}" height="${h}"/></svg><div class="tip" id="tipI" hidden></div>`;
     const el = document.getElementById('serie'); el.innerHTML = s;
     const svg = el.querySelector('svg'), tip = document.getElementById('tipI'), cruz = document.getElementById('cruzI');
@@ -1757,22 +1777,28 @@ table.rep tr.n2 td { color: var(--muted); } table.rep tr.n2 td:nth-child(2) { pa
       const t = Math.min(A1, Math.max(A0, Math.round(A0 + (px - m.l) / w * (A1 - A0))));
       cruz.setAttribute('x1', X(t)); cruz.setAttribute('x2', X(t));
       const tipo = ANIOS_OBS.includes(t) ? 'observado en la malla' : (t < 2001 || t > 2018) ? 'estimado con la tendencia 2011-2018' : 'interpolado';
-      tip.innerHTML = `<b>${t}</b> <small>${tipo}</small>` + d.cats.map(k => `<div><span class="chip" style="background:${COL[k]}"></span>${IPCC.find(c => c.k === k).n}<span>${fmt(d.serie[t][k])} ha</span></div>`).join('');
+      tip.innerHTML = `<b>${t}</b> <small>${tipo}</small>` + d.cats.map(k => `<div><span class="chip" style="background:${COL[k]}"></span>${IPCC.find(c => c.k === k).n}<span>${fmt(d.serie[t][k])} ha${ANIOS_OBS.includes(t) ? ' ± ' + fmt(d.ic(d.cnt[t][k] || 0)) : ''}</span></div>`).join('');
       tip.hidden = false;
       const xr = X(t) / W * r.width; tip.style.left = Math.min(r.width - tip.offsetWidth - 4, Math.max(4, xr + 12)) + 'px';
     };
     svg.querySelector('.hit').addEventListener('pointermove', mover);
     svg.querySelector('.hit').addEventListener('pointerleave', () => { tip.hidden = true; cruz.setAttribute('x1', -10); cruz.setAttribute('x2', -10); });
-    document.getElementById('leyI').innerHTML = d.cats.map(k => `<span><i style="background:${COL[k]}"></i>${IPCC.find(c => c.k === k).n}</span>`).join('') + '<span><i class="o"></i>año observado</span>';
+    document.getElementById('leyI').innerHTML = d.cats.map(k => `<span><i style="background:${COL[k]}"></i>${IPCC.find(c => c.k === k).n}</span>`).join('') + '<span><i class="o"></i>año observado</span><span><i class="pd"></i>mapa pendiente (2020 y 2025)</span>';
     // tabla
     let tb = '<thead><tr><th>Año</th>' + d.cats.map(k => `<th>${k}</th>`).join('') + '<th>Total</th></tr></thead><tbody>';
-    for (let t = A0; t <= A1; t++) tb += `<tr${ANIOS_OBS.includes(t) ? ' class="obs"' : ''}><td>${t}${ANIOS_OBS.includes(t) ? ' ●' : ''}</td>` + d.cats.map(k => `<td>${fmt(d.serie[t][k])}</td>`).join('') + `<td>${fmt(d.tot)}</td></tr>`;
+    for (let t = A0; t <= A1; t++) { const o = ANIOS_OBS.includes(t); tb += `<tr${o ? ' class="obs"' : ''}><td>${t}${o ? ' ●' : [2020, 2025].includes(t) ? ' (mapa pendiente)' : ''}</td>` + d.cats.map(k => `<td>${fmt(d.serie[t][k])}${o ? `<small> ± ${fmt(d.ic(d.cnt[t][k] || 0))}</small>` : ''}</td>`).join('') + `<td>${fmt(d.tot)}</td></tr>`; }
     document.getElementById('tablaSerie').innerHTML = tb + '</tbody>';
   }
   function dibujarMatrizI(d) {
     const [a, b] = document.getElementById('selPerI').value.split('|'), M = d.T[a + '|' + b];
     let cambio = 0; Object.entries(M).forEach(([x, f]) => Object.entries(f).forEach(([y, c]) => { if (x !== y) cambio += c * 100; }));
-    let h = `<div class="kpi" style="margin-bottom:10px"><div><b>${fmt(cambio)} ha</b><span>cambiaron de categoría (± ${fmt(d.ic(cambio / 100))})</span></div><div><b>${fmt(cambio / (b - a))} ha/año</b><span>en promedio</span></div></div>`;
+    const perF = d.cats.filter(y => y !== 'F').reduce((z, y) => z + (((M.F || {})[y]) || 0), 0), ganF = d.cats.filter(x => x !== 'F').reduce((z, x) => z + (((M[x] || {}).F) || 0), 0);
+    let h = `<div class="kpi kpi5" style="margin-bottom:12px">` +
+      `<div><b>${fmt(d.tot)} ha</b><span>superficie evaluada (${d.n.toLocaleString('es-SV')} parcelas)</span></div>` +
+      `<div><b>${pct(1 - cambio / d.tot)}</b><span>se mantuvo en su categoría</span></div>` +
+      `<div><b>${fmt(cambio)} ha</b><span>cambiaron de categoría (± ${fmt(d.ic(cambio / 100))})</span></div>` +
+      `<div><b>${fmt(perF * 100 / (b - a))} ha/año</b><span>de bosque pasaron a otro uso</span></div>` +
+      `<div><b>${fmt(ganF * 100 / (b - a))} ha/año</b><span>se convirtieron en bosque</span></div></div>`;
     h += `<div class="tabla-wrap"><table class="matriz mi"><thead><tr><th>${a} \\ ${b}</th>${d.cats.map(k => `<th title="${IPCC.find(c => c.k === k).n}">${k}</th>`).join('')}<th>Total ${a}</th></tr></thead><tbody>`;
     d.cats.forEach(x => {
       h += `<tr><th style="text-align:left"><span class="chip" style="background:${COL[x]}"></span>${x}</th>`;
@@ -1785,8 +1811,8 @@ table.rep tr.n2 td { color: var(--muted); } table.rep tr.n2 td:nth-child(2) { pa
   }
   function dibujarReporte(d) {
     const t = +document.getElementById('selAnioI').value, filas = reporte(d, t);
-    let h = `<thead><tr><th>Código</th><th>Categoría (año ${t})</th><th>Superficie (ha)</th><th>Margen 95 % (aprox.)</th></tr></thead><tbody>`;
-    filas.forEach(f => h += `<tr class="n${f.nivel}"><td>${f.cod}</td><td><span class="chip" style="background:${COL[f.k]}"></span>${f.nom}</td><td>${fmt(f.v)}</td><td>${masmenos(f.v, f.rel)}</td></tr>`);
+    let h = `<thead><tr><th>Código</th><th>Categoría (año ${t})</th><th>Superficie (ha)</th><th>Margen 95 % (aprox.)</th><th>Conversión en el año (ha/año)</th></tr></thead><tbody>`;
+    filas.forEach(f => h += `<tr class="n${f.nivel}"><td>${f.cod}</td><td><span class="chip" style="background:${COL[f.k]}"></span>${f.nom}</td><td>${fmt(f.v)}</td><td>${masmenos(f.v, f.rel)}</td><td>${f.anual != null ? fmt(f.anual) : ''}</td></tr>`);
     document.getElementById('tablaRep').innerHTML = h + '</tbody>';
   }
   function ingei() {
@@ -1809,8 +1835,8 @@ table.rep tr.n2 td { color: var(--muted); } table.rep tr.n2 td:nth-child(2) { pa
     });
     const t = +document.getElementById('selAnioI').value;
     L.push(''); L.push([`3. Tabla para el reporte, anio ${t} (ventana de ${VENTANA} anios)`].map(q).join(','));
-    L.push(['Codigo', 'Categoria', 'Superficie ha', 'Margen 95% ha'].map(q).join(','));
-    reporte(d, t).forEach(f => L.push([f.cod, f.nom, f.v, f.rel == null ? '' : f.v * f.rel].map(q).join(',')));
+    L.push(['Codigo', 'Categoria', 'Superficie ha', 'Margen 95% ha', 'Conversion en el anio ha/anio'].map(q).join(','));
+    reporte(d, t).forEach(f => L.push([f.cod, f.nom, f.v, f.rel == null ? '' : f.v * f.rel, f.anual == null ? '' : f.anual].map(q).join(',')));
     const blob = new Blob(['﻿' + L.join('\r\n')], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
     a.download = 'borrador_datos_UTCUTS_' + (terrI === 'todo' ? 'El_Salvador' : nombreDepto(terrI).replace(/\s+/g, '_')) + '.csv';
