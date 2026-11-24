@@ -208,6 +208,50 @@ header.top nav a:focus-visible { outline: 2px solid var(--accent); outline-offse
 .kpi div { display: flex; flex-direction: column; }
 .kpi b { font: 750 1.3rem/1.1 var(--f-display); font-variant-numeric: tabular-nums; }
 .kpi span { font-size: 0.78rem; color: var(--muted); }
+/* vista datos para el INGEI */
+.borrador { font-size: 0.92rem; line-height: 1.55; padding: 12px 14px; border-left: 4px solid var(--warn); margin: 0; max-width: 90ch; }
+.filtros { gap: 16px; }
+.btn { font: 600 0.88rem/1 var(--f-display); color: var(--accent); background: var(--panel); border: 1px solid var(--accent); border-radius: 6px; padding: 9px 14px; cursor: pointer; }
+.btn:hover { background: var(--accent-soft); }
+.ing-sec { display: flex; flex-direction: column; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; min-width: 0; }
+.ing-head { display: grid; grid-template-columns: 36px 1fr; gap: 12px; align-items: start; }
+.ing-head h3 { font: 700 1.2rem/1.25 var(--f-display); margin: 0 0 4px; }
+.ing-head .nota { margin: 0; font-size: 0.88rem; max-width: 80ch; }
+.paso { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: var(--panel); display: grid; place-items: center; font: 750 1rem/1 var(--f-display); margin: 0; }
+.leyI { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.84rem; }
+.leyI span { display: inline-flex; align-items: center; gap: 6px; }
+.leyI i { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+.leyI i.o { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); }
+.serie { position: relative; }
+.serie svg { width: 100%; height: auto; display: block; }
+.serie .grid { stroke: var(--line); stroke-width: 1; }
+.serie .ax { fill: var(--muted); font: 500 11px var(--f-text); font-variant-numeric: tabular-nums; }
+.serie .zona { fill: var(--line); opacity: 0.45; }
+.serie .zt { fill: var(--muted); font: 500 11px var(--f-text); text-anchor: middle; }
+.serie .ln { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.serie .pt { stroke: var(--panel); stroke-width: 2; }
+.serie .cruz { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.serie .hit { fill: transparent; cursor: crosshair; }
+.tip { position: absolute; top: 8px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 0.8rem; box-shadow: 0 4px 14px rgba(0,0,0,.12); pointer-events: none; min-width: 210px; }
+.tip small { color: var(--muted); }
+.tip div { display: grid; grid-template-columns: auto 1fr auto; gap: 4px; align-items: center; font-variant-numeric: tabular-nums; }
+.tip div span:last-child { text-align: right; padding-left: 10px; }
+.vertabla summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 0.86rem; }
+.vertabla .tabla-wrap { max-height: 320px; overflow: auto; margin-top: 8px; }
+table.t tr.obs td { font-weight: 650; }
+.matriz.mi td { vertical-align: top; }
+.matriz.mi td small { display: block; color: var(--muted); font-size: 0.7rem; font-weight: 400; }
+table.rep td:nth-child(2), table.rep th:nth-child(2) { white-space: normal; text-align: left; }
+table.rep tr.n0 td { font-weight: 700; border-bottom: 2px solid var(--line); }
+table.rep tr.n1 td:nth-child(2) { padding-left: 14px; font-weight: 600; }
+table.rep tr.n2 td { color: var(--muted); } table.rep tr.n2 td:nth-child(2) { padding-left: 30px; }
+.pend { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.pend li { display: grid; grid-template-columns: 110px 1fr; gap: 12px; align-items: start; }
+.pend b { display: block; font: 650 0.95rem/1.3 var(--f-display); }
+.pend small { color: var(--muted); font-size: 0.84rem; }
+.est { font: 600 0.72rem/1 var(--f-text); text-transform: uppercase; letter-spacing: 0.05em; color: var(--warn); background: var(--warn-soft); padding: 5px 7px; border-radius: 4px; text-align: center; }
+.est.ok { color: var(--accent); background: var(--accent-soft); }
+@media (max-width: 600px) { .ing-sec { padding: 14px; } .pend li { grid-template-columns: 1fr; } .ing-head { grid-template-columns: 1fr; } }
 @media (max-width: 980px) { .ley-grid { grid-template-columns: 1fr; } }
 @media (max-width: 820px) {
   header.top nav { margin-left: 0; width: 100%; }
@@ -224,6 +268,7 @@ header.top nav a:focus-visible { outline: 2px solid var(--accent); outline-offse
       <a href="#mapa" data-v="mapa">Mapa</a>
       <a href="#leyenda" data-v="leyenda">Leyenda</a>
       <a href="#comparar" data-v="comparar">Comparar periodos</a>
+      <a href="#ingei" data-v="ingei">Datos para el INGEI</a>
     </nav>
     <span class="tag">Prototipo</span>
   </header>
@@ -394,6 +439,72 @@ header.top nav a:focus-visible { outline: 2px solid var(--accent); outline-offse
       <div class="divisor" id="divisor2"><div class="asa" role="slider" aria-label="Posición de la cortina" tabindex="0">↔</div></div>
       <div class="etq izq" id="etqA"></div>
       <div class="etq der" id="etqB"></div>
+    </div>
+  </div>
+
+  <!-- ===================== DATOS PARA EL INGEI ===================== -->
+  <div class="vista vista-ley" id="v-ingei" hidden>
+    <div class="ley-in">
+      <div>
+        <p class="eyebrow">Datos para el INGEI · UTCUTS</p>
+        <h2 class="grande">Lo que se entrega al inventario</h2>
+        <p class="lead">Para calcular las emisiones de UTCUTS, la coordinación del INGEI necesita cuánta tierra hay de cada categoría cada año, cuánta pasó de una categoría a otra y con qué margen de error. Con esas hectáreas aplica sus factores de carbono. Esta pestaña muestra cómo se presentaría esa información.</p>
+      </div>
+      <p class="aviso borrador"><b>Borrador de formato, no son cifras oficiales.</b> Los números salen de la malla de puntos 2001, 2011 y 2018 solo como ejemplo. Los años intermedios se rellenan en línea recta, los años antes de 2001 y después de 2018 se extienden con la tendencia 2011-2018 (como en el INGEI 2023), y el margen de error es una aproximación. Las cifras oficiales saldrán de la malla reinterpretada; los mapas sirven para ubicar y verificar los cambios.</p>
+
+      <div class="filtros fila">
+        <label class="fila nota">Territorio <select id="selTerrI" aria-label="Territorio"></select></label>
+        <button type="button" class="btn" id="btnCsv">Descargar ejemplo (CSV)</button>
+      </div>
+
+      <section class="ing-sec">
+        <div class="ing-head">
+          <p class="paso">1</p>
+          <div><h3>Superficie por categoría, año por año</h3>
+          <p class="nota">Una cifra para cada año de 1990 a 2025, en miles de hectáreas. Todas las categorías suman la superficie del territorio. Los círculos son los años observados en la malla; el resto se estima.</p></div>
+        </div>
+        <div class="leyI" id="leyI"></div>
+        <div class="serie" id="serie"></div>
+        <details class="vertabla"><summary>Ver como tabla</summary><div class="tabla-wrap"><table class="t" id="tablaSerie"></table></div></details>
+      </section>
+
+      <section class="ing-sec">
+        <div class="ing-head">
+          <p class="paso">2</p>
+          <div><h3>Matriz de cambio por periodo</h3>
+          <p class="nota">Cuántas hectáreas pasaron de cada categoría (filas) a cada otra (columnas). Debajo de cada número va su margen de error al 95 %: el valor real está, con 95 % de confianza, entre la cifra menos ese margen y la cifra más ese margen.</p></div>
+        </div>
+        <label class="fila nota">Periodo <select id="selPerI" aria-label="Periodo">
+          <option value="2001|2011">2001 → 2011</option>
+          <option value="2011|2018" selected>2011 → 2018</option>
+          <option value="2001|2018">2001 → 2018</option>
+        </select></label>
+        <div id="matrizI"></div>
+      </section>
+
+      <section class="ing-sec">
+        <div class="ing-head">
+          <p class="paso">3</p>
+          <div><h3>Tabla para el reporte</h3>
+          <p class="nota">Así se ordena en el reporte del IPCC: tierra que se mantiene en su categoría y tierra convertida. Una tierra convertida se cuenta como "convertida" durante 20 años, porque el carbono cambia poco a poco.</p></div>
+        </div>
+        <label class="fila nota">Año del reporte <select id="selAnioI" aria-label="Año del reporte"></select></label>
+        <div class="tabla-wrap"><table class="t rep" id="tablaRep"></table></div>
+      </section>
+
+      <section class="ing-sec">
+        <div class="ing-head">
+          <p class="paso">4</p>
+          <div><h3>Qué más lleva la entrega</h3></div>
+        </div>
+        <ul class="pend">
+          <li><span class="est ok">Ejemplo listo</span><div><b>Áreas, cambios y margen de error</b><small>Secciones 1 a 3, hoy con la malla como ejemplo.</small></div></li>
+          <li><span class="est">Pendiente</span><div><b>Subcategorías que cambian el factor de carbono</b><small>Las 11 clases INGEI: bosque latifoliado, coníferas, manglar, café bajo sombra, cultivos perennes y anuales, pasto y matorral.</small></div></li>
+          <li><span class="est">Pendiente</span><div><b>Área quemada por año</b><small>Incendios en bosque y en otras tierras.</small></div></li>
+          <li><span class="est">Pendiente</span><div><b>Regla para las idas y vueltas</b><small>Por ejemplo, bosque → pasto → bosque en pocos años, que suele ser un error de interpretación.</small></div></li>
+          <li><span class="est">Pendiente</span><div><b>Acuerdo de años y nota de método</b><small>Qué años se entregan, cómo se reparte el cambio año por año (incluido 2024) y qué fuente se usó en cada año.</small></div></li>
+        </ul>
+      </section>
     </div>
   </div>
 </div>
@@ -886,8 +997,181 @@ header.top nav a:focus-visible { outline: 2px solid var(--accent); outline-offse
     mz.innerHTML = h;
   }
 
+
+  // ================= vista DATOS PARA EL INGEI (borrador de formato) =================
+  // Ejemplo con la malla 2001/2011/2018: series anuales, matrices con IC 95 % y tabla tipo reporte (ventana de 20 años).
+  const ANIOS_OBS = [2001, 2011, 2018], A0 = 1990, A1 = 2025, VENTANA = 20;
+  const NOM_MIN = { F: 'tierras forestales', C: 'tierras de cultivo', G: 'pastizales', W: 'humedales', S: 'asentamientos', O: 'otras tierras' };
+  const COD_REP = { F: '4.A', C: '4.B', G: '4.C', W: '4.D', S: '4.E', O: '4.F' };
+  const mayus = t => t.charAt(0).toUpperCase() + t.slice(1);
+  let ingIni = false, terrI = 'todo', datI = null;
+  function datosIngei(terr) {
+    const idx = ANIOS_OBS.map(a => malla.campos.indexOf('ipcc' + String(a).slice(2)));
+    const cnt = {}, T = {}; let n = 0;
+    ANIOS_OBS.forEach(a => cnt[a] = {});
+    const pares = [[2001, 2011], [2011, 2018], [2001, 2018]];
+    pares.forEach(([a, b]) => T[a + '|' + b] = {});
+    malla.filas.forEach(f => {
+      if (terr !== 'todo' && f[3] !== terr) return;
+      const k = idx.map(i => IPCC_COD[f[i]]);
+      if (k.some(x => !x)) return; // parcelas sin dato en algún año quedan fuera del ejemplo
+      n++;
+      ANIOS_OBS.forEach((a, i) => cnt[a][k[i]] = (cnt[a][k[i]] || 0) + 1);
+      pares.forEach(([a, b]) => {
+        const x = k[ANIOS_OBS.indexOf(a)], y = k[ANIOS_OBS.indexOf(b)], m = T[a + '|' + b];
+        m[x] = m[x] || {}; m[x][y] = (m[x][y] || 0) + 1;
+      });
+    });
+    const cats = IPCC.filter(c => ANIOS_OBS.some(a => cnt[a][c.k])).map(c => c.k);
+    const tot = n * 100;
+    // serie anual: línea recta entre años observados; fuera de ellos, la tendencia del periodo más cercano
+    const obs = k => ANIOS_OBS.map(a => (cnt[a][k] || 0) * 100);
+    const serie = {};
+    for (let t = A0; t <= A1; t++) {
+      const v = {};
+      cats.forEach(k => {
+        const [a, b, c] = obs(k);
+        let x;
+        if (t < 2001) x = a + (c - b) * (t - 2001) / 7; // antes de 2001: pendiente 2011-2018, como en el INGEI 2023
+        else if (t <= 2011) x = a + (b - a) * (t - 2001) / 10;
+        else x = b + (c - b) * (t - 2011) / 7;
+        v[k] = Math.max(0, x);
+      });
+      const s = cats.reduce((z, k) => z + v[k], 0);
+      cats.forEach(k => v[k] = v[k] * tot / s); // cierre de área
+      serie[t] = v;
+    }
+    // tasas anuales de conversión (ha/año) por periodo
+    const tasa = (per, años) => { const r = {}; Object.entries(T[per]).forEach(([x, f]) => Object.entries(f).forEach(([y, c]) => { if (x !== y) { r[x] = r[x] || {}; r[x][y] = c * 100 / años; } })); return r; };
+    const R1 = tasa('2001|2011', 10), R2 = tasa('2011|2018', 7);
+    const ic = k => { if (!n || !k) return 0; const p = k / n; return 1.96 * tot * Math.sqrt(p * (1 - p) / n); };
+    return { n, tot, cnt, T, cats, serie, R1, R2, ic };
+  }
+  function reporte(d, t) {
+    // tierra convertida = suma de las conversiones de los últimos 20 años; la que se mantiene es el resto
+    const filas = [];
+    d.cats.forEach(y => {
+      const conv = {};
+      d.cats.forEach(x => {
+        if (x === y) return;
+        let s = 0;
+        for (let a = t - VENTANA + 1; a <= t; a++) { const R = a > 2001 && a <= 2011 ? d.R1 : d.R2; s += (R[x] && R[x][y]) || 0; }
+        if (s > 0) conv[x] = s;
+      });
+      const sumConv = Object.values(conv).reduce((a, b) => a + b, 0);
+      const total = d.serie[t][y], mant = Math.max(0, total - sumConv);
+      // margen aproximado: relativo al número de parcelas que sostienen la cifra (malla 2001 → 2018)
+      const relCat = (d.ic(d.cnt[2018][y] || 0) / ((d.cnt[2018][y] || 0) * 100)) || 0;
+      const relConv = x => { const k = ((d.T['2001|2018'][x] || {})[y]) || 0; return k ? d.ic(k) / (k * 100) : null; };
+      filas.push({ cod: COD_REP[y] + '.1', nom: `${mayus(NOM_MIN[y])} que permanecen como tales`, v: mant, rel: relCat, nivel: 1, k: y });
+      filas.push({ cod: COD_REP[y] + '.2', nom: `Tierras convertidas en ${NOM_MIN[y]}`, v: sumConv, rel: null, nivel: 1, k: y });
+      let i = 0;
+      IPCC.forEach(c => { if (c.k === y) return; i++; if (conv[c.k]) filas.push({ cod: `${COD_REP[y]}.2.${i}`, nom: `${mayus(NOM_MIN[c.k])} convertidos en ${NOM_MIN[y]}`.replace('Tierras de cultivo convertidos', 'Tierras de cultivo convertidas').replace('Tierras forestales convertidos', 'Tierras forestales convertidas').replace('Otras tierras convertidos', 'Otras tierras convertidas'), v: conv[c.k], rel: relConv(c.k), nivel: 2, k: y }); });
+      filas.push({ cod: COD_REP[y], nom: 'Total ' + NOM_MIN[y], v: total, rel: relCat, nivel: 0, k: y });
+    });
+    return filas;
+  }
+  const masmenos = (v, rel) => rel == null || !isFinite(rel) || v === 0 ? '-' : '± ' + fmt(v * rel) + ' (' + (rel * 100).toLocaleString('es-SV', { maximumFractionDigits: 0 }) + ' %)';
+  function dibujarSerie(d) {
+    const W = 900, H = 320, m = { l: 52, r: 16, t: 14, b: 30 }, w = W - m.l - m.r, h = H - m.t - m.b;
+    const max = Math.max(...Object.values(d.serie).flatMap(v => Object.values(v)));
+    const paso = [5000, 10000, 20000, 50000, 100000, 200000, 250000].find(p => max / p <= 5) || 250000;
+    const ymax = Math.ceil(max / paso) * paso;
+    const X = t => m.l + (t - A0) / (A1 - A0) * w, Y = v => m.t + h - v / ymax * h;
+    let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Superficie por categoría IPCC de ${A0} a ${A1}">`;
+    s += `<rect class="zona" x="${X(A0)}" y="${m.t}" width="${X(2001) - X(A0)}" height="${h}"/><rect class="zona" x="${X(2018)}" y="${m.t}" width="${X(A1) - X(2018)}" height="${h}"/>`;
+    s += `<text class="zt" x="${(X(A0) + X(2001)) / 2}" y="${m.t + h - 8}">tendencia 2011-2018</text><text class="zt" x="${(X(2018) + X(A1)) / 2}" y="${m.t + h - 8}">tendencia 2011-2018</text>`;
+    for (let v = 0; v <= ymax; v += paso) s += `<line class="grid" x1="${m.l}" x2="${W - m.r}" y1="${Y(v)}" y2="${Y(v)}"/><text class="ax" x="${m.l - 8}" y="${Y(v)}" text-anchor="end" dominant-baseline="middle">${(v / 1000).toLocaleString('es-SV')}</text>`;
+    [1990, 1995, 2000, 2005, 2010, 2015, 2020, 2025].forEach(t => s += `<text class="ax" x="${X(t)}" y="${H - 8}" text-anchor="middle">${t}</text>`);
+    d.cats.forEach(k => {
+      const pts = []; for (let t = A0; t <= A1; t++) pts.push(X(t).toFixed(1) + ',' + Y(d.serie[t][k]).toFixed(1));
+      s += `<polyline class="ln" style="stroke:${COL[k]}" points="${pts.join(' ')}"/>`;
+      ANIOS_OBS.forEach(a => s += `<circle class="pt" cx="${X(a)}" cy="${Y(d.serie[a][k])}" r="4.5" style="fill:${COL[k]}"/>`);
+    });
+    s += `<line class="cruz" id="cruzI" y1="${m.t}" y2="${m.t + h}" x1="-10" x2="-10"/><rect class="hit" x="${m.l}" y="${m.t}" width="${w}" height="${h}"/></svg><div class="tip" id="tipI" hidden></div>`;
+    const el = document.getElementById('serie'); el.innerHTML = s;
+    const svg = el.querySelector('svg'), tip = document.getElementById('tipI'), cruz = document.getElementById('cruzI');
+    const mover = e => {
+      const r = svg.getBoundingClientRect(), px = (e.clientX - r.left) * W / r.width;
+      const t = Math.min(A1, Math.max(A0, Math.round(A0 + (px - m.l) / w * (A1 - A0))));
+      cruz.setAttribute('x1', X(t)); cruz.setAttribute('x2', X(t));
+      const tipo = ANIOS_OBS.includes(t) ? 'observado en la malla' : (t < 2001 || t > 2018) ? 'estimado con la tendencia 2011-2018' : 'interpolado';
+      tip.innerHTML = `<b>${t}</b> <small>${tipo}</small>` + d.cats.map(k => `<div><span class="chip" style="background:${COL[k]}"></span>${IPCC.find(c => c.k === k).n}<span>${fmt(d.serie[t][k])} ha</span></div>`).join('');
+      tip.hidden = false;
+      const xr = X(t) / W * r.width; tip.style.left = Math.min(r.width - tip.offsetWidth - 4, Math.max(4, xr + 12)) + 'px';
+    };
+    svg.querySelector('.hit').addEventListener('pointermove', mover);
+    svg.querySelector('.hit').addEventListener('pointerleave', () => { tip.hidden = true; cruz.setAttribute('x1', -10); cruz.setAttribute('x2', -10); });
+    document.getElementById('leyI').innerHTML = d.cats.map(k => `<span><i style="background:${COL[k]}"></i>${IPCC.find(c => c.k === k).n}</span>`).join('') + '<span><i class="o"></i>año observado</span>';
+    // tabla
+    let tb = '<thead><tr><th>Año</th>' + d.cats.map(k => `<th>${k}</th>`).join('') + '<th>Total</th></tr></thead><tbody>';
+    for (let t = A0; t <= A1; t++) tb += `<tr${ANIOS_OBS.includes(t) ? ' class="obs"' : ''}><td>${t}${ANIOS_OBS.includes(t) ? ' ●' : ''}</td>` + d.cats.map(k => `<td>${fmt(d.serie[t][k])}</td>`).join('') + `<td>${fmt(d.tot)}</td></tr>`;
+    document.getElementById('tablaSerie').innerHTML = tb + '</tbody>';
+  }
+  function dibujarMatrizI(d) {
+    const [a, b] = document.getElementById('selPerI').value.split('|'), M = d.T[a + '|' + b];
+    let cambio = 0; Object.entries(M).forEach(([x, f]) => Object.entries(f).forEach(([y, c]) => { if (x !== y) cambio += c * 100; }));
+    let h = `<div class="kpi" style="margin-bottom:10px"><div><b>${fmt(cambio)} ha</b><span>cambiaron de categoría (± ${fmt(d.ic(cambio / 100))})</span></div><div><b>${fmt(cambio / (b - a))} ha/año</b><span>en promedio</span></div></div>`;
+    h += `<div class="tabla-wrap"><table class="matriz mi"><thead><tr><th>${a} \\ ${b}</th>${d.cats.map(k => `<th title="${IPCC.find(c => c.k === k).n}">${k}</th>`).join('')}<th>Total ${a}</th></tr></thead><tbody>`;
+    d.cats.forEach(x => {
+      h += `<tr><th style="text-align:left"><span class="chip" style="background:${COL[x]}"></span>${x}</th>`;
+      d.cats.forEach(y => { const c = (M[x] || {})[y] || 0; h += `<td class="${x === y ? 'diag' : c ? '' : 'cero'}">${fmt(c * 100)}${c ? `<small>± ${fmt(d.ic(c))}</small>` : ''}</td>`; });
+      h += `<td><b>${fmt((d.cnt[a][x] || 0) * 100)}</b></td></tr>`;
+    });
+    h += `<tr><th style="text-align:left">Total ${b}</th>` + d.cats.map(y => `<td><b>${fmt((d.cnt[b][y] || 0) * 100)}</b></td>`).join('') + `<td><b>${fmt(d.tot)}</b></td></tr></tbody></table></div>`;
+    h += '<p class="nota" style="margin:8px 0 0">Hectáreas. La diagonal (en verde) es lo que se mantuvo; fuera de ella están las conversiones. Cada parcela de la malla representa 100 ha; el margen se calcula como en un muestreo, con el número de parcelas de cada casilla. Con pocas parcelas el margen es grande, y eso es lo que el inventario tiene que reportar.</p>';
+    document.getElementById('matrizI').innerHTML = h;
+  }
+  function dibujarReporte(d) {
+    const t = +document.getElementById('selAnioI').value, filas = reporte(d, t);
+    let h = `<thead><tr><th>Código</th><th>Categoría (año ${t})</th><th>Superficie (ha)</th><th>Margen 95 % (aprox.)</th></tr></thead><tbody>`;
+    filas.forEach(f => h += `<tr class="n${f.nivel}"><td>${f.cod}</td><td><span class="chip" style="background:${COL[f.k]}"></span>${f.nom}</td><td>${fmt(f.v)}</td><td>${masmenos(f.v, f.rel)}</td></tr>`);
+    document.getElementById('tablaRep').innerHTML = h + '</tbody>';
+  }
+  function ingei() {
+    datI = datosIngei(terrI);
+    dibujarSerie(datI); dibujarMatrizI(datI); dibujarReporte(datI);
+  }
+  function csvIngei() {
+    const d = datI, q = v => typeof v === 'number' ? Math.round(v) : '"' + String(v).replace(/"/g, '""') + '"';
+    const L = [];
+    L.push(['BORRADOR DE FORMATO - cifras de ejemplo con la malla 2001/2011/2018, no oficiales'].map(q).join(','));
+    L.push(['Territorio', terrI === 'todo' ? 'El Salvador' : nombreDepto(terrI)].map(q).join(','));
+    L.push(''); L.push(['1. Superficie por categoria (ha)'].map(q).join(','));
+    L.push(['Anio', 'Tipo'].concat(d.cats.map(k => IPCC.find(c => c.k === k).n)).map(q).join(','));
+    for (let t = A0; t <= A1; t++) L.push([t, ANIOS_OBS.includes(t) ? 'observado' : (t < 2001 || t > 2018) ? 'tendencia' : 'interpolado'].concat(d.cats.map(k => d.serie[t][k])).map(q).join(','));
+    [['2001', '2011'], ['2011', '2018']].forEach(([a, b]) => {
+      L.push(''); L.push([`2. Matriz de cambio ${a}-${b} (ha; filas ${a}, columnas ${b})`].map(q).join(','));
+      L.push(['De \\ A'].concat(d.cats, d.cats.map(k => 'IC95 ' + k)).map(q).join(','));
+      const M = d.T[a + '|' + b];
+      d.cats.forEach(x => L.push([x].concat(d.cats.map(y => ((M[x] || {})[y] || 0) * 100), d.cats.map(y => d.ic((M[x] || {})[y] || 0))).map(q).join(',')));
+    });
+    const t = +document.getElementById('selAnioI').value;
+    L.push(''); L.push([`3. Tabla para el reporte, anio ${t} (ventana de ${VENTANA} anios)`].map(q).join(','));
+    L.push(['Codigo', 'Categoria', 'Superficie ha', 'Margen 95% ha'].map(q).join(','));
+    reporte(d, t).forEach(f => L.push([f.cod, f.nom, f.v, f.rel == null ? '' : f.v * f.rel].map(q).join(',')));
+    const blob = new Blob(['﻿' + L.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'borrador_datos_UTCUTS_' + (terrI === 'todo' ? 'El_Salvador' : nombreDepto(terrI).replace(/\s+/g, '_')) + '.csv';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  function iniciarIngei() {
+    ingIni = true;
+    const st = document.getElementById('selTerrI');
+    st.appendChild(new Option('Todo el país', 'todo'));
+    deptos.features.map(f => f.properties).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')).forEach(p => st.appendChild(new Option(p.nombre, p.id)));
+    st.addEventListener('change', e => { terrI = e.target.value; ingei(); });
+    const sa = document.getElementById('selAnioI');
+    for (let t = A1; t >= A0; t--) sa.appendChild(new Option(t, t));
+    sa.value = 2018;
+    sa.addEventListener('change', () => dibujarReporte(datI));
+    document.getElementById('selPerI').addEventListener('change', () => dibujarMatrizI(datI));
+    document.getElementById('btnCsv').addEventListener('click', csvIngei);
+    ingei();
+  }
+
   // ================= navegación por pestañas =================
-  const VISTAS = ['mapa', 'leyenda', 'comparar'];
+  const VISTAS = ['mapa', 'leyenda', 'comparar', 'ingei'];
   function mostrar() {
     const v = VISTAS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'mapa';
     VISTAS.forEach(x => document.getElementById('v-' + x).hidden = x !== v);
@@ -895,6 +1179,7 @@ header.top nav a:focus-visible { outline: 2px solid var(--accent); outline-offse
     if (!malla) return;
     if (v === 'mapa') { map.invalidateSize(); cort1.recortar(); }
     if (v === 'comparar') { if (!map2) iniciarComparar(); else { map2.invalidateSize(); cort2.recortar(); } }
+    if (v === 'ingei' && !ingIni) iniciarIngei();
   }
   window.addEventListener('hashchange', mostrar);
 
