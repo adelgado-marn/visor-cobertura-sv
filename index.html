@@ -915,6 +915,9 @@ table.rep tr.n2 td { color: var(--muted); } table.rep tr.n2 td:nth-child(2) { pa
 .leyI i.sq { width: 12px; height: 12px; border-radius: 2px; }
 .serie .bq { cursor: pointer; } .serie .bq:hover { opacity: 0.8; }
 .fichas td { vertical-align: top; }
+.refs dl { margin: 0 0 8px; max-width: 95ch; }
+.refs dt { font: 650 0.95rem/1.3 var(--f-display); margin-top: 12px; }
+.refs dd { margin: 4px 0 0 0; padding-left: 14px; border-left: 2px solid var(--line); line-height: 1.55; font-size: 0.9rem; }
 .fichas td:nth-child(2) { min-width: 260px; }
 .pend-t { color: var(--warn); }
 .lnk { font: inherit; color: var(--accent); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; }
@@ -1102,6 +1105,23 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
         <h3>Equivalencias entre fuentes</h3>
         <p class="nota" style="margin:0 0 10px">Cómo entra cada clase de cada fuente a las 11 clases INGEI. Ubicación según la tabla 2 de la metodología y el documento Categorías UTCUTS (MARN 2025). La marcada con <span class="marca">*</span> depende del contexto: junto a pastos y con menos de 0.5 ha es pastizal; como franja junto al bosque es bosque.</p>
         <div class="tabla-wrap"><table class="t" id="tablaEquiv"></table></div>
+      </div>
+      <div class="equiv refs" id="referencias">
+        <h3>Referencias de la leyenda</h3>
+        <dl>
+          <dt>Nivel 1 · Categorías del IPCC</dt>
+          <dd>IPCC (2006). <i>Directrices del IPCC de 2006 para los inventarios nacionales de gases de efecto invernadero</i>, Volumen 4 (AFOLU), Capítulo 3: Representación coherente de las tierras. IGES, Japón.</dd>
+          <dd>IPCC (2019). <i>Refinamiento de 2019 de las Directrices del IPCC de 2006</i>, Volumen 4, Capítulo 3.</dd>
+          <dt>Nivel 2 · Clases INGEI</dt>
+          <dd>MARN (2025). <i>Categorías UTCUTS, serie de datos 1990-2023</i> (0715_Coberturas de suelo). Ministerio de Medio Ambiente y Recursos Naturales, El Salvador. Incluye la definición nacional de bosque.</dd>
+          <dd>Emanuelli, P. (2025). <i>Informe final de la reconstrucción de la serie UTCUTS 1990-2023 de El Salvador</i>. GIZ y MARN.</dd>
+          <dd>MARN (2025). <i>Inventario Nacional de Gases de Efecto Invernadero de El Salvador, serie 1990-2023</i>.</dd>
+          <dt>Nivel 3 · Malla de puntos</dt>
+          <dd>MARN (2019). <i>Malla de puntos para el monitoreo de cambios de uso del suelo</i> (Collect Earth Online). Presentación y metodología de generación de la malla, noviembre de 2019.</dd>
+          <dt>Mapa MARN 2016 (20 clases)</dt>
+          <dd>Brenes, C. et al. (2018). <i>Metodología para la elaboración del mapa de cobertura forestal de El Salvador 2016</i>. CATIE y MARN.</dd>
+        </dl>
+        <p class="nota" style="margin:0">Los títulos se tomaron de la metodología del proyecto; conviene verificarlos contra los documentos originales antes de citarlos en un informe.</p>
       </div>
       <div class="equiv" id="fuentes">
         <h3>Fuentes y descargas</h3>
