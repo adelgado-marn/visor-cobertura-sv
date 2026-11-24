@@ -912,6 +912,18 @@ table.rep tr.n2 td { color: var(--muted); } table.rep tr.n2 td:nth-child(2) { pa
 .pend small { color: var(--muted); font-size: 0.84rem; }
 .est { font: 600 0.72rem/1 var(--f-text); text-transform: uppercase; letter-spacing: 0.05em; color: var(--warn); background: var(--warn-soft); padding: 5px 7px; border-radius: 4px; text-align: center; }
 .kpi5 { gap: 10px 24px; }
+.leyI i.sq { width: 12px; height: 12px; border-radius: 2px; }
+.serie .bq { cursor: pointer; } .serie .bq:hover { opacity: 0.8; }
+.fichas td { vertical-align: top; }
+.fichas td:nth-child(2) { min-width: 260px; }
+.pend-t { color: var(--warn); }
+.lnk { font: inherit; color: var(--accent); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; }
+.equiv a { color: var(--accent); }
+.exa-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 980px) { .exa-grid { grid-template-columns: 1fr; } }
+.ing-head h3 .ej, h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(--warn-soft); padding: 3px 5px; border-radius: 3px; margin-left: 6px; vertical-align: 3px; letter-spacing: 0.05em; text-transform: uppercase; }
+h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(--warn-soft); padding: 3px 5px; border-radius: 3px; margin-left: 6px; vertical-align: 1px; letter-spacing: 0.05em; }
+.ley.escala .sw-vacio { background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
 .leyI i.pd { width: 3px; height: 14px; border-radius: 0; background: repeating-linear-gradient(var(--warn) 0 2px, transparent 2px 5px); }
 .serie .pendl { stroke: var(--warn); stroke-width: 1; stroke-dasharray: 2 4; }
 .serie .pendt { fill: var(--warn); font-size: 10px; }
@@ -958,6 +970,38 @@ table.rep tr.n2 td { color: var(--muted); } table.rep tr.n2 td:nth-child(2) { pa
         <h2>Leyenda</h2>
         <div id="leyenda"></div>
         <a class="nota" href="#leyenda" style="color:var(--accent)">Ver la leyenda completa y cómo se lee</a>
+      </section>
+      <section class="blk">
+        <h2>Incertidumbre <span class="ej">ejemplo</span></h2>
+        <label class="chk"><input type="checkbox" id="chkConf"> Confianza del mapa (Piloto 5d, Usulután)</label>
+        <div class="ley escala" id="leyConf" hidden>
+          <div class="it"><span class="sw" style="background:#a63c06"></span><span>Muy baja (menos de 50 %)</span></div>
+          <div class="it"><span class="sw" style="background:#e0712c"></span><span>Baja (50 a 70 %)</span></div>
+          <div class="it"><span class="sw" style="background:#f6b26b"></span><span>Media (70 a 85 %)</span></div>
+          <div class="it"><span class="sw sw-vacio"></span><span>Alta (85 % o más): sin color</span></div>
+        </div>
+        <label class="chk"><input type="checkbox" id="chkMargen"> Margen de error por departamento</label>
+        <div id="cajaMargen" hidden>
+          <label class="fila nota">Cambio 2011 → 2018
+            <select id="selTrans" aria-label="Tipo de cambio">
+              <option value="F>C">Bosque → cultivo</option>
+              <option value="F>G">Bosque → pastizal</option>
+              <option value="C>G">Cultivo → pastizal</option>
+              <option value="G>C">Pastizal → cultivo</option>
+              <option value="C>F">Cultivo → bosque</option>
+              <option value="G>F">Pastizal → bosque</option>
+              <option value="*">Cualquier cambio</option>
+            </select>
+          </label>
+          <div class="ley escala">
+            <div class="it"><span class="sw" style="background:#dfe3f3"></span><span>Menos de ± 25 %</span></div>
+            <div class="it"><span class="sw" style="background:#a9b4e0"></span><span>± 25 a 50 %</span></div>
+            <div class="it"><span class="sw" style="background:#6b7bc4"></span><span>± 50 a 100 %</span></div>
+            <div class="it"><span class="sw" style="background:#36459a"></span><span>Más de ± 100 %</span></div>
+            <div class="it"><span class="sw" style="background:var(--ipcc-SD)"></span><span>Sin parcelas con ese cambio</span></div>
+          </div>
+        </div>
+        <p class="nota" style="margin:0">La confianza es simulada para mostrar cómo se verá; en la versión final sale de la probabilidad que da el Random Forest en cada píxel de los mapas 2020 y 2025. El margen por departamento sí se calcula con la malla: con menos parcelas, el margen crece.</p>
       </section>
       <section class="blk">
         <h2>Referencias</h2>
@@ -1056,6 +1100,20 @@ table.rep tr.n2 td { color: var(--muted); } table.rep tr.n2 td:nth-child(2) { pa
         <h3>Equivalencias entre fuentes</h3>
         <p class="nota" style="margin:0 0 10px">Cómo entra cada clase de cada fuente a las 11 clases INGEI. Las marcadas con <span class="marca">*</span> se ubicaron según la categoría IPCC que les da la malla; falta confirmar su clase INGEI.</p>
         <div class="tabla-wrap"><table class="t" id="tablaEquiv"></table></div>
+      </div>
+      <div class="equiv" id="fuentes">
+        <h3>Fuentes y descargas</h3>
+        <p class="nota" style="margin:0 0 10px">Ficha de cada capa del visor. En el visor los mapas se muestran simplificados (unos 45 m por píxel); los archivos completos se publicarán junto con la versión final. Coordenadas en grados (WGS84, EPSG:4326).</p>
+        <div class="tabla-wrap"><table class="t fichas"><thead><tr><th>Capa</th><th>Fuente y método</th><th>Fecha</th><th>Resolución</th><th>Descargar</th></tr></thead><tbody>
+          <tr><td><b>Malla de puntos</b></td><td>MARN. 21,103 parcelas de 70 × 70 m cada 1 km, interpretadas a ojo en Collect Earth. Cada parcela representa 100 ha.</td><td>2001, 2011, 2018</td><td>1 km (muestreo)</td><td><button type="button" class="lnk" id="dlMalla">Tabla CSV</button></td></tr>
+          <tr><td><b>Mapa oficial MARN 2016</b></td><td>MARN. Imágenes RapidEye 2015-2016, 20 clases agrupadas en 11 clases INGEI.</td><td>2016</td><td>5 m (original)</td><td><a href="datos/capa_marn2016.png" download>Vista PNG</a> · <span class="pend-t">GeoTIFF pendiente</span></td></tr>
+          <tr><td><b>Piloto 5d (Usulután)</b></td><td>Proyecto INGEI. Random Forest con Sentinel-1 y Sentinel-2, entrenado con la malla; 11 clases INGEI.</td><td>2016</td><td>10 m</td><td><a href="datos/capa_p5d2016.png" download>Vista PNG</a> · <span class="pend-t">GeoTIFF pendiente</span></td></tr>
+          <tr><td><b>Mapa LC 2023</b></td><td>Usado en el INGEI 2023. Clases tipo Esri (Sentinel-2).</td><td>2023</td><td>10 m</td><td><a href="datos/capa_lc2023.png" download>Vista PNG</a></td></tr>
+          <tr><td><b>Mapas 2020 y 2025</b></td><td>Proyecto INGEI (productos del TdR). Random Forest con Sentinel; validación con la submalla de 4 km.</td><td>2020, 2025</td><td>10 m</td><td><span class="pend-t">Pendiente</span></td></tr>
+          <tr><td><b>Confianza del mapa</b></td><td>Probabilidad del Random Forest en cada píxel. Hoy es un ejemplo simulado.</td><td>-</td><td>10 m</td><td><span class="pend-t">Pendiente</span></td></tr>
+          <tr><td><b>Límites de departamentos</b></td><td>Aproximados, derivados de la malla. Se reemplazarán por los oficiales del CNR.</td><td>-</td><td>-</td><td><a href="datos/departamentos.json" download>GeoJSON</a></td></tr>
+          <tr><td><b>Manual de procesamiento</b></td><td>Pasos en Google Earth Engine y QGIS para repetir los mapas (producto del TdR).</td><td>-</td><td>-</td><td><span class="pend-t">Pendiente</span></td></tr>
+        </tbody></table></div>
       </div>
     </div>
   </div>
@@ -1165,12 +1223,32 @@ table.rep tr.n2 td { color: var(--muted); } table.rep tr.n2 td:nth-child(2) { pa
       <section class="ing-sec">
         <div class="ing-head">
           <p class="paso">4</p>
+          <div><h3>Qué tan confiable es el mapa <span class="ej">números supuestos</span></h3>
+          <p class="nota">Se compara el mapa con puntos revisados a ojo en imágenes de alta resolución (Collect Earth). La tabla de confusión dice cuántos puntos de cada clase del mapa (filas) son, en realidad, de cada clase (columnas). Con ella se corrigen las áreas del mapa y se les pone margen de error (método de Olofsson).</p></div>
+        </div>
+        <div id="exactitud"></div>
+      </section>
+
+      <section class="ing-sec">
+        <div class="ing-head">
+          <p class="paso">5</p>
+          <div><h3>Área quemada por año <span class="ej">números supuestos</span></h3>
+          <p class="nota">Hectáreas quemadas cada año, separadas por cobertura. Los incendios en bosque van a UTCUTS; las quemas en pastos y cultivos se reportan en Agricultura (3.F), y separarlas evita contarlas dos veces. En la versión final se detectan con imágenes Sentinel-2 y Landsat antes y después del fuego, y se contrastan con los registros de Bomberos y del MARN.</p></div>
+        </div>
+        <div class="leyI" id="leyQ"></div>
+        <div class="serie" id="quema"></div>
+        <details class="vertabla"><summary>Ver como tabla</summary><div class="tabla-wrap"><table class="t" id="tablaQuema"></table></div></details>
+      </section>
+
+      <section class="ing-sec">
+        <div class="ing-head">
+          <p class="paso">6</p>
           <div><h3>Qué más lleva la entrega</h3></div>
         </div>
         <ul class="pend">
-          <li><span class="est ok">Ejemplo listo</span><div><b>Áreas, cambios y margen de error</b><small>Secciones 1 a 3, hoy con la malla como ejemplo.</small></div></li>
+          <li><span class="est ok">Ejemplo listo</span><div><b>Áreas, cambios, margen de error y exactitud</b><small>Secciones 1 a 4, hoy con la malla y con números supuestos como ejemplo.</small></div></li>
           <li><span class="est">Pendiente</span><div><b>Subcategorías que cambian el factor de carbono</b><small>Las 11 clases INGEI: bosque latifoliado, coníferas, manglar, café bajo sombra, cultivos perennes y anuales, pasto y matorral.</small></div></li>
-          <li><span class="est">Pendiente</span><div><b>Área quemada por año</b><small>Incendios en bosque y en otras tierras.</small></div></li>
+          <li><span class="est ok">Ejemplo listo</span><div><b>Área quemada por año</b><small>Sección 5, con números supuestos; falta el cálculo con imágenes.</small></div></li>
           <li><span class="est">Pendiente</span><div><b>Regla para las idas y vueltas</b><small>Por ejemplo, bosque → pasto → bosque en pocos años, que suele ser un error de interpretación.</small></div></li>
           <li><span class="est">Pendiente</span><div><b>Acuerdo de años y nota de método</b><small>Qué años se entregan, cómo se reparte el cambio año por año (incluido 2024) y qué fuente se usó en cada año.</small></div></li>
         </ul>
@@ -1444,6 +1522,55 @@ table.rep tr.n2 td { color: var(--muted); } table.rep tr.n2 td:nth-child(2) { pa
     document.getElementById('tabla').innerHTML = h + '</tbody>';
     document.getElementById('notaSup').textContent = 'Malla: cada parcela equivale a 100 ha (muestreo sistemático de 1 km). * Mapa: superficie contada píxel a píxel; el de 2023 usa otra leyenda y otra fuente, por eso no es comparable con la malla (por ejemplo, marca como asentamiento lo que la malla registra como cultivo o pasto). Con los mapas 2016, 2020 y 2025 propios del proyecto la serie quedará con una sola leyenda.';
   }
+
+  // ================= incertidumbre (ejemplo) en la vista MAPA =================
+  map.createPane('incert'); map.getPane('incert').style.zIndex = 430;
+  const atenuar = () => { const on = document.getElementById('chkConf').checked || document.getElementById('chkMargen').checked; ['izq', 'der'].forEach(pn => map.getPane(pn).style.opacity = document.getElementById('chkMargen').checked ? 0.12 : on ? 0.3 : ''); };
+  const lyConf = L.imageOverlay('datos/capa_confianza_p5d.png', L.latLngBounds([[13.159240934010047, -88.8142761842152], [13.700386061163647, -88.12185476321588]]), { pane: 'incert', interactive: false });
+  let lyMargen = null;
+  const RAMPA_M = ['#dfe3f3', '#a9b4e0', '#6b7bc4', '#36459a'];
+  function margenDeptos() {
+    const [x, y] = document.getElementById('selTrans').value.split('>');
+    const i11 = malla.campos.indexOf('ipcc11'), i18 = malla.campos.indexOf('ipcc18'), cuenta = {};
+    malla.filas.forEach(f => {
+      const a = IPCC_COD[f[i11]], b = IPCC_COD[f[i18]]; if (!a || !b) return;
+      const c = cuenta[f[3]] = cuenta[f[3]] || { n: 0, k: 0 }; c.n++;
+      if (y === undefined ? a !== b : a === x && b === y) c.k++;
+    });
+    if (lyMargen) map.removeLayer(lyMargen);
+    lyMargen = L.geoJSON(deptos, {
+      pane: 'incert',
+      style: ft => {
+        const c = cuenta[ft.properties.id] || { n: 0, k: 0 }, p = c.n ? c.k / c.n : 0, rel = c.k ? 1.96 * Math.sqrt((1 - p) / (c.n * p)) : null;
+        ft.properties._m = { ha: c.k * 100, rel };
+        const col = rel == null ? COL.SD : RAMPA_M[rel < 0.25 ? 0 : rel < 0.5 ? 1 : rel < 1 ? 2 : 3];
+        return { color: TINTA, weight: 1, fillColor: col, fillOpacity: 0.9 };
+      },
+      onEachFeature: (ft, l) => l.bindTooltip(() => { const m = ft.properties._m; return `<b>${ft.properties.nombre}</b><br>${fmt(m.ha)} ha${m.rel == null ? ' (sin parcelas)' : ' ± ' + Math.round(m.rel * 100) + ' %'}`; }, { sticky: true })
+    }).addTo(map);
+  }
+  document.getElementById('chkConf').addEventListener('change', e => {
+    document.getElementById('leyConf').hidden = !e.target.checked;
+    if (e.target.checked) {
+      // la confianza es del piloto: se pone el piloto como mapa principal para leerla encima
+      if (izqId !== 'p5d2016' && capaInfo('p5d2016')) { izqId = 'p5d2016'; document.getElementById('capa-p5d2016').checked = true; if (derId === izqId) derId = otraCapa(izqId); llenarDer(); pintar(); }
+      lyConf.addTo(map); map.fitBounds(lyConf.getBounds(), { padding: [20, 20] });
+    } else map.removeLayer(lyConf);
+    atenuar();
+  });
+  document.getElementById('chkMargen').addEventListener('change', e => {
+    document.getElementById('cajaMargen').hidden = !e.target.checked;
+    atenuar();
+    if (e.target.checked) { margenDeptos(); map.fitBounds(lyMargen.getBounds(), { padding: [10, 10] }); } else if (lyMargen) { map.removeLayer(lyMargen); lyMargen = null; }
+  });
+  document.getElementById('selTrans').addEventListener('change', () => { if (document.getElementById('chkMargen').checked) margenDeptos(); });
+
+  document.getElementById('dlMalla').addEventListener('click', () => {
+    const cab = ['id', 'lat', 'lon', 'depto', 'ipcc2001', 'clase2001', 'copa2001', 'ipcc2011', 'clase2011', 'copa2011', 'ipcc2018', 'clase2018', 'copa2018'];
+    const txt = [cab.join(',')].concat(malla.filas.map(f => f.map(v => v == null ? '' : String(v).includes(',') ? '"' + v + '"' : v).join(','))).join('\r\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['\ufeff' + txt], { type: 'text/csv;charset=utf-8' }));
+    a.download = 'malla_puntos_2001_2011_2018.csv'; document.body.appendChild(a); a.click(); a.remove();
+  });
 
   // ================= vista LEYENDA =================
   let anioLey = '18', nodoSel = null, nodos = [];
@@ -1815,6 +1942,63 @@ table.rep tr.n2 td { color: var(--muted); } table.rep tr.n2 td:nth-child(2) { pa
     filas.forEach(f => h += `<tr class="n${f.nivel}"><td>${f.cod}</td><td><span class="chip" style="background:${COL[f.k]}"></span>${f.nom}</td><td>${fmt(f.v)}</td><td>${masmenos(f.v, f.rel)}</td><td>${f.anual != null ? fmt(f.anual) : ''}</td></tr>`);
     document.getElementById('tablaRep').innerHTML = h + '</tbody>';
   }
+  // exactitud: tabla de confusión de ejemplo (filas = mapa, columnas = referencia) y áreas corregidas (Olofsson et al. 2014)
+  const CONF_EJ = { cats: ['F', 'C', 'G', 'W', 'S'], n: [[380, 12, 18, 3, 2], [15, 250, 45, 1, 6], [22, 38, 210, 2, 4], [3, 1, 2, 80, 1], [1, 6, 5, 0, 110]] };
+  function dibujarExactitud() {
+    const { cats, n } = CONF_EJ, K = cats.length;
+    const tMapa = totales('marn2016', 'todo'), A = cats.reduce((z, k) => z + (tMapa[k] || 0), 0);
+    const ni = n.map(r => r.reduce((a, b) => a + b, 0)), N = ni.reduce((a, b) => a + b, 0), W = cats.map(k => (tMapa[k] || 0) / A);
+    const P = n.map((r, i) => r.map(v => W[i] * v / ni[i]));
+    const pj = cats.map((_, j) => P.reduce((z, r) => z + r[j], 0));
+    const OA = cats.reduce((z, _, i) => z + P[i][i], 0);
+    const seOA = Math.sqrt(cats.reduce((z, _, i) => { const u = n[i][i] / ni[i]; return z + W[i] * W[i] * u * (1 - u) / (ni[i] - 1); }, 0));
+    const UA = cats.map((_, i) => n[i][i] / ni[i]), PA = cats.map((_, j) => P[j][j] / pj[j]);
+    const seA = cats.map((_, j) => A * Math.sqrt(cats.reduce((z, _, i) => { const q = n[i][j] / ni[i]; return z + W[i] * W[i] * q * (1 - q) / (ni[i] - 1); }, 0)));
+    const nm = k => IPCC.find(c => c.k === k).n;
+    let h = `<div class="kpi kpi5" style="margin-bottom:12px"><div><b>${pct(OA)} ± ${(1.96 * seOA * 100).toLocaleString('es-SV', { maximumFractionDigits: 1 })}</b><span>exactitud global (puntos donde mapa y referencia coinciden)</span></div><div><b>${N.toLocaleString('es-SV')}</b><span>puntos de referencia</span></div></div>`;
+    h += `<div class="exa-grid"><div class="tabla-wrap"><table class="matriz mi"><thead><tr><th>Mapa \\ Referencia</th>${cats.map(k => `<th title="${nm(k)}">${k}</th>`).join('')}<th>Puntos</th><th title="De lo que el mapa llama así, cuánto lo es">Acierto del mapa</th></tr></thead><tbody>`;
+    cats.forEach((r, i) => { h += `<tr><th style="text-align:left"><span class="chip" style="background:${COL[r]}"></span>${r}</th>${n[i].map((v, j) => `<td class="${i === j ? 'diag' : v ? '' : 'cero'}">${v}</td>`).join('')}<td>${ni[i]}</td><td><b>${pct(UA[i])}</b></td></tr>`; });
+    h += `<tr><th style="text-align:left" title="De lo que realmente es esa clase, cuánto encontró el mapa">Encontrado por el mapa</th>${PA.map(v => `<td><b>${pct(v)}</b></td>`).join('')}<td></td><td></td></tr></tbody></table></div>`;
+    h += `<div class="tabla-wrap"><table class="t"><thead><tr><th>Categoría</th><th>Área del mapa (ha)</th><th>Área corregida (ha)</th><th>Margen 95 %</th></tr></thead><tbody>`;
+    cats.forEach((k, j) => { h += `<tr><td><span class="chip" style="background:${COL[k]}"></span>${nm(k)}</td><td>${fmt(tMapa[k] || 0)}</td><td><b>${fmt(A * pj[j])}</b></td><td>± ${fmt(1.96 * seA[j])} (${Math.round(1.96 * seA[j] / (A * pj[j]) * 100)} %)</td></tr>`; });
+    h += `</tbody></table></div></div><p class="nota" style="margin:8px 0 0">Ejemplo con números supuestos sobre las áreas del mapa MARN 2016. "Acierto del mapa": de lo que el mapa marca como bosque, qué parte es bosque de verdad. "Encontrado por el mapa": del bosque que hay en realidad, qué parte encontró el mapa. Si el mapa se equivoca más en una dirección (por ejemplo, llama pasto a cultivos), el área corregida se mueve hacia el lado correcto.</p>`;
+    document.getElementById('exactitud').innerHTML = h;
+  }
+  // área quemada de ejemplo (ha/año), con picos en años secos
+  const QUEMA_EJ = (() => {
+    const r = {}, seca = { 2002: 1.4, 2005: 1.2, 2009: 1.3, 2012: 1.2, 2015: 1.9, 2016: 1.6, 2019: 1.3, 2020: 1.2, 2023: 1.4, 2024: 1.8 };
+    let z = 7; const rnd = () => (z = (z * 16807) % 2147483647) / 2147483647;
+    for (let t = 2001; t <= 2025; t++) { const f = (seca[t] || 1) * (0.85 + 0.3 * rnd()); r[t] = { F: Math.round(2600 * f * (0.8 + 0.4 * rnd())), G: Math.round(9800 * f * (0.8 + 0.4 * rnd())), C: Math.round(5200 * f * (0.8 + 0.4 * rnd())) }; }
+    return r;
+  })();
+  function dibujarQuema() {
+    const cats = ['F', 'G', 'C'], nom = { F: 'Bosque (UTCUTS)', G: 'Pastizal y matorral', C: 'Cultivos (quema agrícola)' };
+    const W = 900, H = 260, m = { l: 52, r: 16, t: 12, b: 28 }, w = W - m.l - m.r, h = H - m.t - m.b, años = Object.keys(QUEMA_EJ).map(Number);
+    const tot = t => cats.reduce((z, k) => z + QUEMA_EJ[t][k], 0), max = Math.max(...años.map(tot)), paso = 10000, ymax = Math.ceil(max / paso) * paso;
+    const bw = w / años.length, Y = v => m.t + h - v / ymax * h;
+    let sv = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Área quemada por año y cobertura, 2001 a 2025">`;
+    for (let v = 0; v <= ymax; v += paso) sv += `<line class="grid" x1="${m.l}" x2="${W - m.r}" y1="${Y(v)}" y2="${Y(v)}"/><text class="ax" x="${m.l - 8}" y="${Y(v)}" text-anchor="end" dominant-baseline="middle">${(v / 1000).toLocaleString('es-SV')} mil</text>`;
+    años.forEach((t, i) => {
+      let base = 0; const x = m.l + i * bw + 2;
+      cats.forEach(k => { const v = QUEMA_EJ[t][k]; sv += `<rect class="bq" data-t="${t}" x="${x}" y="${Y(base + v) + 1}" width="${bw - 4}" height="${Math.max(0, Y(base) - Y(base + v) - 1)}" rx="1" style="fill:${COL[k]}"/>`; base += v; });
+      if (t % 5 === 0 || t === 2001) sv += `<text class="ax" x="${x + (bw - 4) / 2}" y="${H - 8}" text-anchor="middle">${t}</text>`;
+    });
+    sv += `</svg><div class="tip" id="tipQ" hidden></div>`;
+    const el = document.getElementById('quema'); el.innerHTML = sv;
+    const tip = document.getElementById('tipQ');
+    el.querySelectorAll('.bq').forEach(r => {
+      r.addEventListener('pointerenter', () => {
+        const t = +r.dataset.t; tip.innerHTML = `<b>${t}</b>` + cats.map(k => `<div><span class="chip" style="background:${COL[k]}"></span>${nom[k]}<span>${fmt(QUEMA_EJ[t][k])} ha</span></div>`).join('') + `<div><span></span><b>Total</b><span><b>${fmt(tot(t))} ha</b></span></div>`;
+        tip.hidden = false; const svg = el.querySelector('svg').getBoundingClientRect(), rb = r.getBoundingClientRect();
+        tip.style.left = Math.min(svg.width - tip.offsetWidth - 4, Math.max(4, rb.left - svg.left + 14)) + 'px';
+      });
+      r.addEventListener('pointerleave', () => tip.hidden = true);
+    });
+    document.getElementById('leyQ').innerHTML = cats.map(k => `<span><i class="sq" style="background:${COL[k]}"></i>${nom[k]}</span>`).join('');
+    let tb = '<thead><tr><th>Año</th>' + cats.map(k => `<th>${nom[k]}</th>`).join('') + '<th>Total</th></tr></thead><tbody>';
+    años.forEach(t => tb += `<tr><td>${t}</td>${cats.map(k => `<td>${fmt(QUEMA_EJ[t][k])}</td>`).join('')}<td>${fmt(tot(t))}</td></tr>`);
+    document.getElementById('tablaQuema').innerHTML = tb + '</tbody>';
+  }
   function ingei() {
     datI = datosIngei(terrI);
     dibujarSerie(datI); dibujarMatrizI(datI); dibujarReporte(datI);
@@ -1854,7 +2038,7 @@ table.rep tr.n2 td { color: var(--muted); } table.rep tr.n2 td:nth-child(2) { pa
     sa.addEventListener('change', () => dibujarReporte(datI));
     document.getElementById('selPerI').addEventListener('change', () => dibujarMatrizI(datI));
     document.getElementById('btnCsv').addEventListener('click', csvIngei);
-    ingei();
+    ingei(); dibujarExactitud(); dibujarQuema();
   }
 
   // ================= navegación por pestañas =================
