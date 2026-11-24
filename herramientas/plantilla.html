@@ -313,11 +313,12 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
       <section class="blk">
         <h2>Incertidumbre <span class="ej">ejemplo</span></h2>
         <label class="chk"><input type="checkbox" id="chkConf"> Confianza del mapa (Piloto 5d, Usulután)</label>
+        <p class="nota" style="margin:0">Para verla sin interferencia, elige "Ninguno" en Mapa principal.</p>
         <div class="ley escala" id="leyConf" hidden>
           <div class="it"><span class="sw" style="background:#a63c06"></span><span>Muy baja (menos de 50 %)</span></div>
           <div class="it"><span class="sw" style="background:#e0712c"></span><span>Baja (50 a 70 %)</span></div>
           <div class="it"><span class="sw" style="background:#f6b26b"></span><span>Media (70 a 85 %)</span></div>
-          <div class="it"><span class="sw sw-vacio"></span><span>Alta (85 % o más): sin color</span></div>
+          <div class="it"><span class="sw" style="background:#fdf1e1"></span><span>Alta (85 % o más)</span></div>
         </div>
         <label class="chk"><input type="checkbox" id="chkMargen"> Margen de error por departamento</label>
         <div id="cajaMargen" hidden>
@@ -643,7 +644,7 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
 
   let malla, capas, sup, deptos, matrices = {};
   let catalogo = [];
-  let izqId, derId = null, cortinaOn = false, territorio = 'todo';
+  let izqId, derId = null, cortinaOn = false, territorio = 'todo', apagado = false;
 
   // ================= utilidades de mapa =================
   const Puntos = L.Layer.extend({
@@ -730,6 +731,9 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
     document.getElementById('etqIzq').textContent = capaInfo(izqId).nombre;
     if (derId) document.getElementById('etqDer').textContent = capaInfo(derId).nombre;
     cort1.recortar(); leyendaLateral();
+    // "Ninguno": se apagan los mapas para ver solo las capas de referencia o de incertidumbre
+    ['izq', 'der'].forEach(pn => map.getPane(pn).style.display = apagado ? 'none' : '');
+    if (apagado) { ['divisor', 'etqIzq', 'etqDer'].forEach(i => document.getElementById(i).hidden = true); document.getElementById('leyenda').innerHTML = '<p class="nota" style="margin:0">Mapas apagados. Elige una capa arriba para volver a verla.</p>'; }
   }
   function leyendaLateral() {
     const ids = [izqId].concat(cortinaOn && derId ? [derId] : []);
@@ -757,9 +761,13 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
     catalogo.forEach(c => {
       const l = document.createElement('label'); l.className = 'capa';
       l.innerHTML = `<input type="radio" name="capa" id="capa-${c.id}" value="${c.id}"${c.id === izqId ? ' checked' : ''}><span class="n">${c.nombre}</span><span class="y">${c.anio}</span><span class="f">${c.desc}</span>`;
-      l.querySelector('input').addEventListener('change', () => { izqId = c.id; if (derId === izqId) derId = otraCapa(izqId); llenarDer(); pintar(); });
+      l.querySelector('input').addEventListener('change', () => { apagado = false; izqId = c.id; if (derId === izqId) derId = otraCapa(izqId); llenarDer(); pintar(); });
       el.appendChild(l);
     });
+    const ning = document.createElement('label'); ning.className = 'capa';
+    ning.innerHTML = `<input type="radio" name="capa" id="capa-ninguno" value="ninguno"><span class="n">Ninguno (apagar los mapas)</span><span class="y"></span><span class="f">Para ver solo el mapa base, los límites o la incertidumbre</span>`;
+    ning.querySelector('input').addEventListener('change', () => { apagado = true; pintar(); });
+    el.appendChild(ning);
     PENDIENTES.filter(p => !catalogo.some(c => c.id === p.id)).forEach(p => {
       const l = document.createElement('div'); l.className = 'capa pend';
       l.innerHTML = `<input type="radio" disabled aria-label="${p.nombre}"><span class="n">${p.nombre}</span><span class="y">${p.anio}</span><span class="f">${p.nota}</span>`;
@@ -892,7 +900,7 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
     document.getElementById('leyConf').hidden = !e.target.checked;
     if (e.target.checked) {
       // la confianza es del piloto: se pone el piloto como mapa principal para leerla encima
-      if (izqId !== 'p5d2016' && capaInfo('p5d2016')) { izqId = 'p5d2016'; document.getElementById('capa-p5d2016').checked = true; if (derId === izqId) derId = otraCapa(izqId); llenarDer(); pintar(); }
+      if (!apagado && izqId !== 'p5d2016' && capaInfo('p5d2016')) { izqId = 'p5d2016'; document.getElementById('capa-p5d2016').checked = true; if (derId === izqId) derId = otraCapa(izqId); llenarDer(); pintar(); }
       lyConf.addTo(map); map.fitBounds(lyConf.getBounds(), { padding: [20, 20] });
     } else map.removeLayer(lyConf);
     atenuar();
