@@ -406,7 +406,7 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
           </div>
           <div>
             <h3>Cómo se lee un código</h3>
-            <p>Cada número que se agrega al código baja un nivel de detalle. El primer número es la categoría IPCC, el segundo la clase INGEI y el tercero la clase de la malla. Toca una clase en el gráfico para ver su código.</p>
+            <p>Cada número que se agrega al código baja un nivel de detalle. El primer número es la categoría IPCC, el segundo la clase INGEI y el tercero la clase de la fuente: la malla de puntos (fuente oficial de áreas) o, con el botón de arriba del gráfico, el mapa MARN 2016. Toca una clase en el gráfico para ver su código.</p>
             <div class="codigo" id="codigo" aria-live="polite"></div>
           </div>
           <div class="bosque">
@@ -424,7 +424,13 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
           <div class="graf-head">
             <div>
               <h3>Jerarquía de la leyenda</h3>
-              <span class="nota">Tres anillos: nivel 1 (centro), nivel 2 y nivel 3. Porcentaje del país según la malla de</span>
+              <div class="fila" style="margin:4px 0 6px"><span class="nota">Nivel 3 según:</span>
+                <div class="seg" role="group" aria-label="Fuente del nivel 3">
+                  <button type="button" id="btnN3malla" aria-pressed="true">Malla de puntos</button>
+                  <button type="button" id="btnN3m16" aria-pressed="false">Mapa MARN 2016</button>
+                </div>
+              </div>
+              <span class="nota" id="notaPctLey">Tres anillos: nivel 1 (centro), nivel 2 y nivel 3. Porcentaje del país según la malla de</span>
               <select id="selAnioLey" aria-label="Año de la malla"><option value="18">2018</option><option value="11">2011</option><option value="01">2001</option></select>
             </div>
             <div class="seg" role="group" aria-label="Forma de ver la leyenda">
@@ -940,7 +946,10 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
   });
 
   // ================= vista LEYENDA =================
-  let anioLey = '18', nodoSel = null, nodos = [];
+  let anioLey = '18', nodoSel = null, nodos = [], fuenteN3 = 'malla';
+  // superficie del mapa MARN 2016 por clase INGEI (píxeles de 20 m del ráster agregado a 11 clases)
+  const MARN11 = { '1.1': 14262859, '1.2': 943357, '1.3': 1943251, '1.4': 5472480, '2.1': 2482682, '2.2': 2493408, '2.3': 8516470, '3.1': 8718887, '3.2': 2697478, '4.1': 2317964, '5.1': 3763073 };
+  const pctN = n => n.pct == null ? 'sin dato por clase' : pct(n.pct);
   function construirNodos() {
     nodos = [];
     IPCC.forEach(c1 => {
@@ -949,8 +958,9 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
       N2.filter(x => x.p === c1.k).forEach(x => {
         const n2 = { nivel: 2, c: x.c, n: x.n, k: c1.k, col: x.col, hijos: [], padre: n1, m16: x.m16 };
         n1.hijos.push(n2); nodos.push(n2);
-        x.h.forEach(([cod, nom, marca], i) => {
-          const n3 = { nivel: 3, c: x.c + '.' + (i + 1), n: nom, k: c1.k, col: aclarar(x.col, 0.28 + 0.22 * i), hijos: [], padre: n2, malla: cod, marca: !!marca };
+        const hijos3 = fuenteN3 === 'malla' ? x.h : x.m16.map(nom => [null, nom, 0]);
+        hijos3.forEach(([cod, nom, marca], i) => {
+          const n3 = { nivel: 3, c: x.c + '.' + (i + 1), n: nom, k: c1.k, col: aclarar(x.col, 0.2 + 0.6 * i / Math.max(1, hijos3.length)), hijos: [], padre: n2, malla: cod, marca: !!marca, m16: fuenteN3 === 'm16' };
           n2.hijos.push(n3); nodos.push(n3);
         });
       });
@@ -963,6 +973,11 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
   }
   const textoSobre = hex => { const n = parseInt(hex.slice(1), 16); const l = (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; return l > 0.6 ? '#1b2620' : '#ffffff'; };
   function porcentajes() {
+    if (fuenteN3 === 'm16') {
+      const tot = Object.values(MARN11).reduce((a, b) => a + b, 0);
+      const p = n => n.nivel === 3 ? null : n.nivel === 2 ? (MARN11[n.c] || 0) / tot : n.hijos.reduce((a, h) => a + p(h), 0);
+      nodos.forEach(n => n.pct = p(n)); return;
+    }
     const ci = malla.campos.indexOf('cl' + anioLey), cnt = {}; let tot = 0;
     malla.filas.forEach(f => { cnt[f[ci]] = (cnt[f[ci]] || 0) + 1; tot++; });
     const p = n => n.nivel === 3 ? (cnt[n.malla] || 0) / tot : n.hijos.reduce((a, h) => a + p(h), 0);
@@ -992,7 +1007,7 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
       const [r0, r1] = n.nivel === 2 && !n.hijos.length ? [R[1][0], R[2][1]] : R[n.nivel - 1];
       const p = document.createElementNS(ns, 'path');
       p.setAttribute('d', arco(r0, r1, a0, a1)); p.setAttribute('fill', n.col); p.setAttribute('tabindex', '0');
-      p.setAttribute('aria-label', `${n.c} ${n.n}, ${pct(n.pct)}`);
+      p.setAttribute('aria-label', `${n.c} ${n.n}, ${pctN(n)}`);
       p.addEventListener('mouseenter', () => seleccionar(n)); p.addEventListener('focus', () => seleccionar(n)); p.addEventListener('click', () => seleccionar(n));
       n.el = p; svg.appendChild(p);
       const mid = (a0 + a1) / 2, rm = (r0 + r1) / 2, largo = (a1 - a0) * Math.PI / 180 * rm;
@@ -1012,16 +1027,16 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
     const r = ruta(n), enRama = new Set(r);
     const sol = document.getElementById('sol'); sol.classList.add('atenuar');
     nodos.forEach(x => { if (!x.el) return; x.el.classList.toggle('rama', enRama.has(x) || ruta(x).includes(n)); x.el.classList.toggle('act', x === n); });
-    document.getElementById('centro').innerHTML = `<span class="nv">Nivel ${n.nivel}</span><span class="cd"><i style="background:${n.col}"></i>${n.c}</span><span class="nm">${n.n}${n.marca ? ' *' : ''}</span><span class="pc">${pct(n.pct)}</span>`;
-    const nombresNivel = ['', 'Categoría IPCC', 'Clase INGEI', 'Clase de la malla'];
+    document.getElementById('centro').innerHTML = `<span class="nv">Nivel ${n.nivel}</span><span class="cd"><i style="background:${n.col}"></i>${n.c}</span><span class="nm">${n.n}${n.marca ? ' *' : ''}</span><span class="pc">${pctN(n)}</span>`;
+    const nombresNivel = ['', 'Categoría IPCC', 'Clase INGEI', fuenteN3 === 'malla' ? 'Clase de la malla' : 'Clase del mapa MARN 2016'];
     let h = `<div class="num"><span class="sw" style="background:${n.col}"></span>${n.c}</div>`;
     for (let i = 1; i <= 3; i++) {
       const x = r[i - 1];
       if (x) {
-        let extra = i === 1 ? `${x.k} · categoría del IPCC` : i === 2 ? (x.m16 && x.m16.length ? 'Mapa 2016: ' + x.m16.join(', ') : 'Sin clases en los mapas 2016') : `Código ${x.malla} en la malla${x.marca ? ' · clase INGEI por confirmar' : ''}`;
+        let extra = i === 1 ? `${x.k} · categoría del IPCC` : i === 2 ? (fuenteN3 === 'malla' ? (x.m16 && x.m16.length ? 'Mapa 2016: ' + x.m16.join(', ') : 'Sin clases en los mapas 2016') : 'superficie según el mapa MARN 2016') : (fuenteN3 === 'malla' ? `Código ${x.malla} en la malla${x.marca ? ' · depende del contexto' : ''}` : 'una de las 20 clases del mapa');
         h += `<div class="niv"><span class="k">Nivel ${i}</span><div><b>${x.n}</b><small>${nombresNivel[i]} · ${extra}</small></div></div>`;
       } else {
-        h += `<div class="niv vacio"><span class="k">Nivel ${i}</span><div><b>${i === 3 && n.nivel === 2 && !n.hijos.length ? 'Sin clases en la malla' : 'Elige una clase de este nivel en el gráfico'}</b><small>${nombresNivel[i]}</small></div></div>`;
+        h += `<div class="niv vacio"><span class="k">Nivel ${i}</span><div><b>${i === 3 && n.nivel === 2 && !n.hijos.length ? (fuenteN3 === 'malla' ? 'Sin clases en la malla' : 'Sin clases en el mapa 2016') : 'Elige una clase de este nivel en el gráfico'}</b><small>${nombresNivel[i]}</small></div></div>`;
       }
     }
     document.getElementById('codigo').innerHTML = h;
@@ -1029,7 +1044,7 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
   }
   function dibujarLista() {
     const ul = document.getElementById('lista'); ul.innerHTML = '';
-    const fila = n => `<div class="row" data-c="${n.c}" tabindex="0"><span class="sw" style="background:${n.col}"></span><span class="c">${n.c}</span><span class="n">${n.n}${n.marca ? ' <span class="marca" style="color:var(--warn)">*</span>' : ''}</span><span class="p">${pct(n.pct)}</span></div>`;
+    const fila = n => `<div class="row" data-c="${n.c}" tabindex="0"><span class="sw" style="background:${n.col}"></span><span class="c">${n.c}</span><span class="n">${n.n}${n.marca ? ' <span class="marca" style="color:var(--warn)">*</span>' : ''}</span><span class="p">${n.pct == null ? '' : pct(n.pct)}</span></div>`;
     const rec = n => `<li>${fila(n)}${n.hijos.length ? '<ul>' + n.hijos.map(rec).join('') + '</ul>' : ''}</li>`;
     ul.innerHTML = nodos.filter(n => n.nivel === 1).map(rec).join('');
     ul.querySelectorAll('.row').forEach(el => {
@@ -1054,6 +1069,16 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
     document.getElementById('sol').hidden = lista; document.getElementById('lista').hidden = !lista;
   }
   btnG.addEventListener('click', () => modoLey(false)); btnL.addEventListener('click', () => modoLey(true));
+  function fuenteNivel3(f) {
+    fuenteN3 = f;
+    document.getElementById('btnN3malla').setAttribute('aria-pressed', String(f === 'malla'));
+    document.getElementById('btnN3m16').setAttribute('aria-pressed', String(f === 'm16'));
+    document.getElementById('selAnioLey').hidden = f !== 'malla';
+    document.getElementById('notaPctLey').textContent = f === 'malla' ? 'Tres anillos: nivel 1 (centro), nivel 2 y nivel 3. Porcentaje del país según la malla de' : 'Tres anillos: nivel 1 (centro), nivel 2 y nivel 3 con las 20 clases del mapa MARN 2016. Porcentaje del país según ese mapa (solo hasta el nivel 2).';
+    const c = nodoSel && nodoSel.c; construirNodos(); nodoSel = nodos.find(n => n.c === c) || nodos.find(n => n.c === '1.1'); leyendaCompleta();
+  }
+  document.getElementById('btnN3malla').addEventListener('click', () => fuenteNivel3('malla'));
+  document.getElementById('btnN3m16').addEventListener('click', () => fuenteNivel3('m16'));
 
   // ================= vista COMPARAR =================
   let map2, cort2, lyA = null, lyB = null, idA = 'malla2001', idB = 'malla2018', terrC = 'todo', lyDeptos2;
