@@ -1208,7 +1208,7 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
 
       <div class="filtros fila">
         <label class="fila nota">Territorio <select id="selTerrI" aria-label="Territorio"></select></label>
-        <button type="button" class="btn" id="btnCsv">Descargar ejemplo (CSV)</button>
+        <button type="button" class="btn" id="btnCsv">Descargar ejemplo (Excel)</button>
       </div>
 
       <section class="ing-sec">
@@ -1996,6 +1996,7 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
     document.getElementById('tablaRep').innerHTML = h + '</tbody>';
   }
   // exactitud: tabla de confusión de ejemplo (filas = mapa, columnas = referencia) y áreas corregidas (Olofsson et al. 2014)
+  let exaRes = null;
   const CONF_EJ = { cats: ['F', 'C', 'G', 'W', 'S'], n: [[380, 12, 18, 3, 2], [15, 250, 45, 1, 6], [22, 38, 210, 2, 4], [3, 1, 2, 80, 1], [1, 6, 5, 0, 110]] };
   function dibujarExactitud() {
     const { cats, n } = CONF_EJ, K = cats.length;
@@ -2016,6 +2017,7 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
     cats.forEach((k, j) => { h += `<tr><td><span class="chip" style="background:${COL[k]}"></span>${nm(k)}</td><td>${fmt(tMapa[k] || 0)}</td><td><b>${fmt(A * pj[j])}</b></td><td>± ${fmt(1.96 * seA[j])} (${Math.round(1.96 * seA[j] / (A * pj[j]) * 100)} %)</td></tr>`; });
     h += `</tbody></table></div></div><p class="nota" style="margin:8px 0 0">Ejemplo con números supuestos sobre las áreas del mapa MARN 2016. "Acierto del mapa": de lo que el mapa marca como bosque, qué parte es bosque de verdad. "Encontrado por el mapa": del bosque que hay en realidad, qué parte encontró el mapa. Si el mapa se equivoca más en una dirección (por ejemplo, llama pasto a cultivos), el área corregida se mueve hacia el lado correcto.</p>`;
     document.getElementById('exactitud').innerHTML = h;
+    exaRes = { cats, n, ni, UA, PA, tMapa, A, pj, seA, OA, seOA };
   }
   // área quemada de ejemplo (ha/año), con picos en años secos
   const QUEMA_EJ = (() => {
@@ -2056,29 +2058,61 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
     datI = datosIngei(terrI);
     dibujarSerie(datI); dibujarMatrizI(datI); dibujarReporte(datI);
   }
-  function csvIngei() {
-    const d = datI, q = v => typeof v === 'number' ? Math.round(v) : '"' + String(v).replace(/"/g, '""') + '"';
-    const L = [];
-    L.push(['BORRADOR DE FORMATO - cifras de ejemplo con la malla 2001/2011/2018, no oficiales'].map(q).join(','));
-    L.push(['Territorio', terrI === 'todo' ? 'El Salvador' : nombreDepto(terrI)].map(q).join(','));
-    L.push(''); L.push(['1. Superficie por categoria (ha)'].map(q).join(','));
-    L.push(['Anio', 'Tipo'].concat(d.cats.map(k => IPCC.find(c => c.k === k).n)).map(q).join(','));
-    for (let t = A0; t <= A1; t++) L.push([t, ANIOS_OBS.includes(t) ? 'observado' : (t < 2001 || t > 2018) ? 'tendencia' : 'interpolado'].concat(d.cats.map(k => d.serie[t][k])).map(q).join(','));
-    [['2001', '2011'], ['2011', '2018']].forEach(([a, b]) => {
-      L.push(''); L.push([`2. Matriz de cambio ${a}-${b} (ha; filas ${a}, columnas ${b})`].map(q).join(','));
-      L.push(['De \\ A'].concat(d.cats, d.cats.map(k => 'IC95 ' + k)).map(q).join(','));
-      const M = d.T[a + '|' + b];
-      d.cats.forEach(x => L.push([x].concat(d.cats.map(y => ((M[x] || {})[y] || 0) * 100), d.cats.map(y => d.ic((M[x] || {})[y] || 0))).map(q).join(',')));
-    });
-    const t = +document.getElementById('selAnioI').value;
-    L.push(''); L.push([`3. Tabla para el reporte, anio ${t} (ventana de ${VENTANA} anios)`].map(q).join(','));
-    L.push(['Codigo', 'Categoria', 'Superficie ha', 'Margen 95% ha', 'Conversion en el anio ha/anio'].map(q).join(','));
-    reporte(d, t).forEach(f => L.push([f.cod, f.nom, f.v, f.rel == null ? '' : f.v * f.rel, f.anual == null ? '' : f.anual].map(q).join(',')));
-    const blob = new Blob(['﻿' + L.join('\r\n')], { type: 'text/csv;charset=utf-8' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-    a.download = 'borrador_datos_UTCUTS_' + (terrI === 'todo' ? 'El_Salvador' : nombreDepto(terrI).replace(/\s+/g, '_')) + '.csv';
-    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  // descarga en Excel: una hoja por tabla, con anchos de columna propios (SheetJS se carga solo al pedir la descarga)
+  function cargarXLSX() {
+    if (window.XLSX) return Promise.resolve(window.XLSX);
+    return new Promise((ok, mal) => { const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.mini.min.js'; sc.onload = () => ok(window.XLSX); sc.onerror = () => mal(new Error('No se pudo cargar el generador de Excel')); document.head.appendChild(sc); });
   }
+  function hoja(X, filas, anchos) {
+    const ws = X.utils.aoa_to_sheet(filas);
+    const n = Math.max(...filas.map(f => f.length));
+    ws['!cols'] = Array.from({ length: n }, (_, c) => ({ wch: (anchos && anchos[c]) || Math.min(60, Math.max(8, ...filas.map(f => f[c] == null ? 0 : String(typeof f[c] === 'number' ? Math.round(f[c]).toLocaleString('es-SV') : f[c]).length + 2))) }));
+    return ws;
+  }
+  async function excelIngei() {
+    const btn = document.getElementById('btnCsv'); const txt = btn.textContent; btn.textContent = 'Preparando…'; btn.disabled = true;
+    try {
+      const X = await cargarXLSX(), d = datI, wb = X.utils.book_new(), r = v => v == null || v === '' ? null : Math.round(v);
+      const terr = terrI === 'todo' ? 'El Salvador' : nombreDepto(terrI), nom = k => IPCC.find(c => c.k === k).n, t = +document.getElementById('selAnioI').value;
+      X.utils.book_append_sheet(wb, hoja(X, [
+        ['BORRADOR DE FORMATO - datos de actividad UTCUTS'], [],
+        ['Territorio', terr], ['Fuente de ejemplo', 'Malla de puntos 2001, 2011 y 2018 (MARN); cada parcela = 100 ha'],
+        ['Advertencia', 'Cifras de ejemplo, no oficiales. Años intermedios interpolados en línea recta; antes de 2001 y después de 2018, tendencia 2011-2018. Exactitud y área quemada con números supuestos.'], [],
+        ['Hoja', 'Contenido'],
+        ['1_Superficie', 'Superficie por categoría IPCC, año por año 1990-2025 (ha)'],
+        ['2_Matriz_2001_2011', 'Matriz de cambio 2001-2011 (ha) y margen de error al 95 %'],
+        ['2_Matriz_2011_2018', 'Matriz de cambio 2011-2018 (ha) y margen de error al 95 %'],
+        ['3_Reporte_' + t, 'Tabla tipo reporte IPCC para ' + t + ' (ventana de ' + VENTANA + ' años)'],
+        ['4_Exactitud', 'Tabla de confusión y áreas corregidas (números supuestos)'],
+        ['5_Area_quemada', 'Área quemada por año y cobertura (números supuestos)']
+      ], [22, 110]), 'Leeme');
+      X.utils.book_append_sheet(wb, hoja(X, [['Año', 'Tipo de dato'].concat(d.cats.map(nom), ['Total'])]
+        .concat(Array.from({ length: A1 - A0 + 1 }, (_, i) => { const a = A0 + i; return [a, ANIOS_OBS.includes(a) ? 'observado' : (a < 2001 || a > 2018) ? 'tendencia' : 'interpolado'].concat(d.cats.map(k => r(d.serie[a][k])), [r(d.tot)]); }))), '1_Superficie');
+      [['2001', '2011'], ['2011', '2018']].forEach(([a, b]) => {
+        const M = d.T[a + '|' + b], f = [['Filas: ' + a + ' / Columnas: ' + b].concat(d.cats.map(nom), ['Total ' + a])];
+        d.cats.forEach(x => f.push([nom(x)].concat(d.cats.map(y => ((M[x] || {})[y] || 0) * 100), [(d.cnt[a][x] || 0) * 100])));
+        f.push(['Total ' + b].concat(d.cats.map(y => (d.cnt[b][y] || 0) * 100), [d.tot]));
+        f.push([], ['Margen de error al 95 % (± ha)'].concat(d.cats.map(nom)));
+        d.cats.forEach(x => f.push([nom(x)].concat(d.cats.map(y => r(d.ic((M[x] || {})[y] || 0))))));
+        X.utils.book_append_sheet(wb, hoja(X, f), '2_Matriz_' + a + '_' + b);
+      });
+      X.utils.book_append_sheet(wb, hoja(X, [['Código', 'Categoría', 'Superficie (ha)', 'Margen 95 % (± ha)', 'Margen 95 % (%)', 'Conversión en el año (ha/año)']]
+        .concat(reporte(d, t).map(f => [f.cod, f.nom, r(f.v), f.rel == null ? null : r(f.v * f.rel), f.rel == null ? null : Math.round(f.rel * 1000) / 10, f.anual == null ? null : r(f.anual)]))), '3_Reporte_' + t);
+      if (exaRes) {
+        const e = exaRes, f = [['Mapa \\ Referencia'].concat(e.cats.map(nom), ['Puntos', 'Acierto del mapa (%)'])];
+        e.cats.forEach((k, i) => f.push([nom(k)].concat(e.n[i], [e.ni[i], Math.round(e.UA[i] * 1000) / 10])));
+        f.push(['Encontrado por el mapa (%)'].concat(e.PA.map(v => Math.round(v * 1000) / 10)));
+        f.push([], ['Exactitud global (%)', Math.round(e.OA * 1000) / 10, '± ' + (Math.round(1.96 * e.seOA * 1000) / 10)], [], ['Categoría', 'Área del mapa (ha)', 'Área corregida (ha)', 'Margen 95 % (± ha)']);
+        e.cats.forEach((k, j) => f.push([nom(k), r(e.tMapa[k] || 0), r(e.A * e.pj[j]), r(1.96 * e.seA[j])]));
+        X.utils.book_append_sheet(wb, hoja(X, f), '4_Exactitud');
+      }
+      X.utils.book_append_sheet(wb, hoja(X, [['Año', 'Bosque (UTCUTS)', 'Pastizal y matorral', 'Cultivos (quema agrícola)', 'Total']]
+        .concat(Object.keys(QUEMA_EJ).map(a => { const q = QUEMA_EJ[a]; return [+a, q.F, q.G, q.C, q.F + q.G + q.C]; }))), '5_Area_quemada');
+      X.writeFile(wb, 'borrador_datos_UTCUTS_' + terr.replace(/\s+/g, '_') + '.xlsx');
+    } catch (err) { alertaDescarga(err); }
+    btn.textContent = txt; btn.disabled = false;
+  }
+  function alertaDescarga(err) { console.error(err); const b = document.getElementById('btnCsv'); const n = document.createElement('p'); n.className = 'aviso'; n.style.margin = '0'; n.textContent = 'No se pudo preparar el Excel (' + err.message + '). Revisa la conexión a internet e inténtalo de nuevo.'; b.parentNode.appendChild(n); setTimeout(() => n.remove(), 6000); }
   function iniciarIngei() {
     ingIni = true;
     const st = document.getElementById('selTerrI');
@@ -2090,7 +2124,7 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
     sa.value = 2018;
     sa.addEventListener('change', () => dibujarReporte(datI));
     document.getElementById('selPerI').addEventListener('change', () => dibujarMatrizI(datI));
-    document.getElementById('btnCsv').addEventListener('click', csvIngei);
+    document.getElementById('btnCsv').addEventListener('click', excelIngei);
     ingei(); dibujarExactitud(); dibujarQuema();
   }
 
