@@ -1100,7 +1100,7 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
 
       <div class="equiv">
         <h3>Equivalencias entre fuentes</h3>
-        <p class="nota" style="margin:0 0 10px">Cómo entra cada clase de cada fuente a las 11 clases INGEI. Las marcadas con <span class="marca">*</span> se ubicaron según la categoría IPCC que les da la malla; falta confirmar su clase INGEI.</p>
+        <p class="nota" style="margin:0 0 10px">Cómo entra cada clase de cada fuente a las 11 clases INGEI. Ubicación según la tabla 2 de la metodología y el documento Categorías UTCUTS (MARN 2025). La marcada con <span class="marca">*</span> depende del contexto: junto a pastos y con menos de 0.5 ha es pastizal; como franja junto al bosque es bosque.</p>
         <div class="tabla-wrap"><table class="t" id="tablaEquiv"></table></div>
       </div>
       <div class="equiv" id="fuentes">
@@ -1286,17 +1286,17 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
 
   // ---- jerarquía de la leyenda: nivel 1 IPCC > nivel 2 clase INGEI > nivel 3 clase de la malla
   const N2 = [
-    { c: '1.1', p: 'F', n: 'Bosque latifoliado', col: '#1a7a1a', m16: ['Bosque latifoliado'], h: [[1, 'Bosque latifoliado natural'], [2, 'Bosque latifoliado plantado'], [6, 'Otras áreas arboladas', 1]] },
+    { c: '1.1', p: 'F', n: 'Bosque latifoliado', col: '#1a7a1a', m16: ['Bosque latifoliado'], h: [[1, 'Bosque latifoliado natural'], [2, 'Bosque latifoliado plantado']] },
     { c: '1.2', p: 'F', n: 'Bosque de coníferas', col: '#6b8e23', m16: ['Bosque de coníferas (incluye plantaciones)'], h: [[3, 'Bosque de conífera natural'], [4, 'Bosque de conífera plantado']] },
     { c: '1.3', p: 'F', n: 'Bosque salado (manglar)', col: '#8b0000', m16: ['Bosque salado (mangle)'], h: [[5, 'Bosque salado']] },
     { c: '1.4', p: 'F', n: 'Café', col: '#4f4782', m16: ['Café bajo sombra'], h: [[7, 'Cultivo de café']] },
     { c: '2.1', p: 'C', n: 'Caña de azúcar', col: '#00b386', m16: ['Caña de azúcar'], h: [[8, 'Caña de azúcar']] },
     { c: '2.2', p: 'C', n: 'Frutales', col: '#e8cf7a', m16: ['Cultivos frutales', 'Coco', 'Café sin sombra'], h: [[9, 'Cultivo de frutales']] },
     { c: '2.3', p: 'C', n: 'Otras agrícolas', col: '#d6d600', m16: ['Granos básicos', 'Arroz y agricultura bajo riego', 'Hortalizas'], h: [[10, 'Otras zonas agrícolas']] },
-    { c: '3.1', p: 'G', n: 'Pastizales', col: '#c2b800', m16: ['Pastos (cultivados y naturales)'], h: [[11, 'Pasto'], [15, 'Áreas arboladas en tejido edificado', 1]] },
-    { c: '3.2', p: 'G', n: 'Vegetación arbustiva', col: '#b48fcf', m16: ['Matorral (menos de 5 m)', 'Vegetación costera'], h: [[12, 'Vegetación arbustiva'], [18, 'Roca, lava, playa y suelo desnudo', 1]] },
+    { c: '3.1', p: 'G', n: 'Pastizales', col: '#c2b800', m16: ['Pastos (cultivados y naturales)'], h: [[11, 'Pasto'], [6, 'Otras áreas arboladas (según contexto)', 1]] },
+    { c: '3.2', p: 'G', n: 'Vegetación arbustiva', col: '#b48fcf', m16: ['Matorral (menos de 5 m)', 'Vegetación costera'], h: [[12, 'Vegetación arbustiva']] },
     { c: '4.1', p: 'W', n: 'Humedales y agua', col: '#005ce6', m16: ['Cuerpos de agua', 'Estanques, camaroneras y salineras', 'Humedales', 'Arenales y dunas'], h: [[16, 'Cuerpos de agua'], [17, 'Estanques y salineras']] },
-    { c: '5.1', p: 'S', n: 'Asentamientos', col: '#ff0000', m16: ['Urbano y suelos desnudos', 'Coladas de lava'], h: [[13, 'Tejido edificado continuo'], [14, 'Tejido edificado discontinuo']] },
+    { c: '5.1', p: 'S', n: 'Asentamientos', col: '#ff0000', m16: ['Urbano y suelos desnudos', 'Coladas de lava'], h: [[13, 'Tejido edificado continuo'], [14, 'Tejido edificado discontinuo'], [15, 'Áreas arboladas en tejido edificado'], [18, 'Roca, lava, playa y suelo desnudo']] },
     { c: '6.1', p: 'O', n: 'Otras tierras (sin clase INGEI)', col: '#a8957c', m16: [], h: [] }];
   const ESRI = { F: 'Árboles', C: 'Cultivos', G: 'Pastizal / arbustal', W: 'Agua; vegetación inundada', S: 'Construido', O: 'Suelo desnudo' };
 
