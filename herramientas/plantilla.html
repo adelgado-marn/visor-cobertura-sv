@@ -296,8 +296,9 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
   <div class="vista vista-mapa" id="v-mapa">
     <aside class="side">
       <section class="blk">
-        <h2>Mapa principal</h2>
+        <h2>Mapas</h2>
         <div class="capas" id="capas"></div>
+        <p class="nota" style="margin:0">Enciende o apaga cada uno. Si hay varios encendidos, la malla de puntos queda encima de los mapas.</p>
       </section>
       <section class="blk">
         <h2>Comparar con cortina</h2>
@@ -313,7 +314,7 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
       <section class="blk">
         <h2>Incertidumbre <span class="ej">ejemplo</span></h2>
         <label class="chk"><input type="checkbox" id="chkConf"> Confianza del mapa (Piloto 5d, Usulután)</label>
-        <p class="nota" style="margin:0">Para verla sin interferencia, elige "Ninguno" en Mapa principal.</p>
+        <p class="nota" style="margin:0">Para verla sin interferencia, apaga los mapas de arriba.</p>
         <div class="ley escala" id="leyConf" hidden>
           <div class="it"><span class="sw" style="background:#a63c06"></span><span>Muy baja (menos de 50 %)</span></div>
           <div class="it"><span class="sw" style="background:#e0712c"></span><span>Baja (50 a 70 %)</span></div>
@@ -644,7 +645,8 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
 
   let malla, capas, sup, deptos, matrices = {};
   let catalogo = [];
-  let izqId, derId = null, cortinaOn = false, territorio = 'todo', apagado = false;
+  let izqId, derId = null, cortinaOn = false, territorio = 'todo';
+  const activos = new Set(); // capas encendidas en el mapa principal (se pueden encender varias o ninguna)
 
   // ================= utilidades de mapa =================
   const Puntos = L.Layer.extend({
@@ -720,23 +722,25 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
   // ================= vista MAPA =================
   const map = nuevoMapa('map');
   const cort1 = cortina(map, document.getElementById('divisor'));
-  let lyIzq = null, lyDer = null;
+  let lyIzq = [], lyDer = null;
+  // orden de dibujo: mapas (por año) abajo y malla de puntos arriba, para que los puntos se vean
+  const ordenActivos = () => catalogo.filter(c => activos.has(c.id)).sort((a, b) => (a.tipo === 'malla') - (b.tipo === 'malla') || a.anio - b.anio).map(c => c.id);
   function pintar() {
-    if (lyIzq) map.removeLayer(lyIzq);
+    lyIzq.forEach(l => map.removeLayer(l)); lyIzq = [];
     if (lyDer) { map.removeLayer(lyDer); lyDer = null; }
-    lyIzq = crearCapa(izqId, 'izq').addTo(map);
+    const ids = ordenActivos();
+    izqId = ids.length ? ids[ids.length - 1] : null;
+    ids.forEach(id => lyIzq.push(crearCapa(id, 'izq').addTo(map)));
     if (cortinaOn && derId) lyDer = crearCapa(derId, 'der').addTo(map);
     cort1.on = cortinaOn;
     ['divisor', 'etqIzq', 'etqDer'].forEach(i => document.getElementById(i).hidden = !cortinaOn);
-    document.getElementById('etqIzq').textContent = capaInfo(izqId).nombre;
+    document.getElementById('etqIzq').textContent = ids.length ? ids.map(i => capaInfo(i).nombre).join(' + ') : 'Sin mapas encendidos';
     if (derId) document.getElementById('etqDer').textContent = capaInfo(derId).nombre;
     cort1.recortar(); leyendaLateral();
-    // "Ninguno": se apagan los mapas para ver solo las capas de referencia o de incertidumbre
-    ['izq', 'der'].forEach(pn => map.getPane(pn).style.display = apagado ? 'none' : '');
-    if (apagado) { ['divisor', 'etqIzq', 'etqDer'].forEach(i => document.getElementById(i).hidden = true); document.getElementById('leyenda').innerHTML = '<p class="nota" style="margin:0">Mapas apagados. Elige una capa arriba para volver a verla.</p>'; }
   }
   function leyendaLateral() {
-    const ids = [izqId].concat(cortinaOn && derId ? [derId] : []);
+    const ids = ordenActivos().reverse().concat(cortinaOn && derId ? [derId] : []);
+    if (!ids.length) { document.getElementById('leyenda').innerHTML = '<p class="nota" style="margin:0">No hay mapas encendidos. Marca uno arriba para verlo.</p>'; return; }
     const el = document.getElementById('leyenda'); el.innerHTML = '';
     const vistos = new Set();
     ids.forEach(id => {
@@ -760,14 +764,10 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
     const el = document.getElementById('capas'); el.innerHTML = '';
     catalogo.forEach(c => {
       const l = document.createElement('label'); l.className = 'capa';
-      l.innerHTML = `<input type="radio" name="capa" id="capa-${c.id}" value="${c.id}"${c.id === izqId ? ' checked' : ''}><span class="n">${c.nombre}</span><span class="y">${c.anio}</span><span class="f">${c.desc}</span>`;
-      l.querySelector('input').addEventListener('change', () => { apagado = false; izqId = c.id; if (derId === izqId) derId = otraCapa(izqId); llenarDer(); pintar(); });
+      l.innerHTML = `<input type="checkbox" id="capa-${c.id}" value="${c.id}"${activos.has(c.id) ? ' checked' : ''}><span class="n">${c.nombre}</span><span class="y">${c.anio}</span><span class="f">${c.desc}</span>`;
+      l.querySelector('input').addEventListener('change', e => { if (e.target.checked) activos.add(c.id); else activos.delete(c.id); pintar(); });
       el.appendChild(l);
     });
-    const ning = document.createElement('label'); ning.className = 'capa';
-    ning.innerHTML = `<input type="radio" name="capa" id="capa-ninguno" value="ninguno"><span class="n">Ninguno (apagar los mapas)</span><span class="y"></span><span class="f">Para ver solo el mapa base, los límites o la incertidumbre</span>`;
-    ning.querySelector('input').addEventListener('change', () => { apagado = true; pintar(); });
-    el.appendChild(ning);
     PENDIENTES.filter(p => !catalogo.some(c => c.id === p.id)).forEach(p => {
       const l = document.createElement('div'); l.className = 'capa pend';
       l.innerHTML = `<input type="radio" disabled aria-label="${p.nombre}"><span class="n">${p.nombre}</span><span class="y">${p.anio}</span><span class="f">${p.nota}</span>`;
@@ -777,8 +777,8 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
   const otraCapa = id => (catalogo.find(c => c.id !== id) || {}).id;
   function llenarDer() {
     const s = document.getElementById('selDer'); s.innerHTML = '';
-    catalogo.filter(c => c.id !== izqId).forEach(c => s.appendChild(new Option(`${c.nombre} (${c.anio})`, c.id)));
-    if (!derId || derId === izqId) derId = otraCapa(izqId);
+    catalogo.forEach(c => s.appendChild(new Option(`${c.nombre} (${c.anio})`, c.id)));
+    if (!derId) derId = otraCapa(izqId);
     s.value = derId;
   }
   document.getElementById('selDer').addEventListener('change', e => { derId = e.target.value; pintar(); });
@@ -797,8 +797,10 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
   });
 
   function parcelaCercana(latlng) {
-    const c = capaInfo(cortinaOn && map.latLngToContainerPoint(latlng).x > map.getSize().x * cort1.split ? derId : izqId);
-    if (c.tipo !== 'malla') return null;
+    const der = cortinaOn && map.latLngToContainerPoint(latlng).x > map.getSize().x * cort1.split;
+    const id = der ? derId : ordenActivos().reverse().find(i => capaInfo(i).tipo === 'malla');
+    const c = id && capaInfo(id);
+    if (!c || c.tipo !== 'malla') return null;
     const p0 = map.latLngToContainerPoint(latlng); let mejor = null, dmin = 9;
     for (const f of malla.filas) {
       if (Math.abs(f[1] - latlng.lat) > 0.03 || Math.abs(f[2] - latlng.lng) > 0.03) continue;
@@ -899,8 +901,6 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
   document.getElementById('chkConf').addEventListener('change', e => {
     document.getElementById('leyConf').hidden = !e.target.checked;
     if (e.target.checked) {
-      // la confianza es del piloto: se pone el piloto como mapa principal para leerla encima
-      if (!apagado && izqId !== 'p5d2016' && capaInfo('p5d2016')) { izqId = 'p5d2016'; document.getElementById('capa-p5d2016').checked = true; if (derId === izqId) derId = otraCapa(izqId); llenarDer(); pintar(); }
       lyConf.addTo(map); map.fitBounds(lyConf.getBounds(), { padding: [20, 20] });
     } else map.removeLayer(lyConf);
     atenuar();
@@ -1409,7 +1409,7 @@ h2 .ej { font: 600 0.62rem/1 var(--f-text); color: var(--warn); background: var(
       catalogo = [2001, 2011, 2018].map(a => ({ id: 'malla' + a, anio: a, tipo: 'malla', nombre: 'Malla de puntos ' + a, desc: '21,103 parcelas, categoría IPCC' }))
         .concat(capas.map(x => Object.assign({ tipo: 'raster', desc: x.fuente.split('(')[0].trim() }, x)))
         .sort((a, b) => a.anio - b.anio || prioridad(a.id) - prioridad(b.id));
-      izqId = 'malla2018'; derId = 'lc2023';
+      activos.add('malla2018'); izqId = 'malla2018'; derId = 'lc2023';
       const st = document.getElementById('selTerr'); st.appendChild(new Option('Todo el país', 'todo'));
       deptos.features.map(f => f.properties).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')).forEach(p => st.appendChild(new Option(p.nombre, p.id)));
       listaCapas(); llenarDer(); capaDeptos(); pintar(); superficies();
