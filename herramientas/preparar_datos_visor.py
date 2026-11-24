@@ -110,7 +110,7 @@ def malla(filas, salida, sup):
             d[c] = d.get(c, 0) + 100
 
 
-def capa_raster(cid, tif, leyenda, salida, sup, deptos_json, ancho=6000):
+def capa_raster(cid, tif, leyenda, salida, sup, deptos_json, ancho=None):
     """Convierte un GeoTIFF de clases a PNG Web Mercator y calcula superficie por departamento y categoria IPCC."""
     with rasterio.open(tif) as d:
         b = d.bounds
@@ -119,6 +119,8 @@ def capa_raster(cid, tif, leyenda, salida, sup, deptos_json, ancho=6000):
             raise SystemExit('El GeoTIFF debe venir en EPSG:4326 (en GEE: crs "EPSG:4326").')
         nod = d.nodata
         # ---- PNG Web Mercator (muestreo por vecino mas cercano)
+        if ancho is None:
+            ancho = min(6000, d.width)
         def merc(lat): return math.log(math.tan(math.pi / 4 + math.radians(lat) / 2))
         y0, y1 = merc(b.top), merc(b.bottom)
         alto = int(round(ancho * (y0 - y1) / math.radians(b.right - b.left)))

@@ -415,7 +415,7 @@ header.top nav a:focus-visible { outline: 2px solid var(--accent); outline-offse
   const pct = n => (n * 100).toLocaleString('es-SV', { maximumFractionDigits: 1, minimumFractionDigits: 1 }) + ' %';
   const mil = n => (n / 1000).toLocaleString('es-SV', { maximumFractionDigits: 1, minimumFractionDigits: 1 });
 
-  let malla, capas, sup, deptos;
+  let malla, capas, sup, deptos, matrices = {};
   let catalogo = [];
   let izqId, derId = null, cortinaOn = false, territorio = 'todo';
 
@@ -601,6 +601,8 @@ header.top nav a:focus-visible { outline: 2px solid var(--accent); outline-offse
   function elegirTerritorio(id) {
     territorio = id; document.getElementById('selTerr').value = id;
     lyDeptos.setStyle(estiloDepto); superficies();
+    if (id === 'todo') map.fitBounds(lyDeptos.getBounds(), { padding: [10, 10] });
+    else lyDeptos.eachLayer(l => { if (l.feature.properties.id === id) map.fitBounds(l.getBounds(), { padding: [20, 20] }); });
   }
   document.getElementById('selTerr').addEventListener('change', e => elegirTerritorio(e.target.value));
   function totales(clave, terr) {
@@ -608,12 +610,13 @@ header.top nav a:focus-visible { outline: 2px solid var(--accent); outline-offse
     Object.entries(sup[clave].deptos).forEach(([d, v]) => { if (terr !== 'todo' && d !== terr) return; Object.entries(v).forEach(([k, a]) => t[k] = (t[k] || 0) + a); });
     return t;
   }
+  const prioridad = k => k.startsWith('malla') ? 0 : k === 'marn2016' ? 1 : 2;
   const etiquetaFuente = k => k.startsWith('malla') ? 'malla' : (k === 'lc2023' ? 'mapa Esri' : k === 'marn2016' ? 'mapa MARN' : k === 'p5d2016' ? 'piloto 5d' : 'mapa');
   function superficies() {
     document.getElementById('terrNombre').textContent = territorio === 'todo' ? 'El Salvador' : nombreDepto(territorio);
     const series = Object.keys(sup).filter(k => !sup[k].alcance || sup[k].alcance === territorio)
       .map(k => ({ k, anio: sup[k].anio, t: totales(k, territorio), malla: k.startsWith('malla'), nombre: (capaInfo(k) || {}).nombre }))
-      .sort((a, b) => a.anio - b.anio);
+      .sort((a, b) => a.anio - b.anio || prioridad(a.k) - prioridad(b.k));
     const cats = IPCC.filter(c => series.some(s => s.t[c.k] > 0));
     const bar = document.getElementById('barras'); bar.innerHTML = '';
     series.forEach(s => {
@@ -624,7 +627,7 @@ header.top nav a:focus-visible { outline: 2px solid var(--accent); outline-offse
       bar.appendChild(d);
     });
     const m = series.filter(s => s.malla), a0 = m[0], a1 = m[m.length - 1];
-    let h = `<thead><tr><th>Categoría (miles de ha)</th>${series.map(s => `<th title="${s.nombre || ''}">${s.anio}${s.malla ? '' : '*'}</th>`).join('')}<th>Cambio ${a0.anio}–${a1.anio}</th></tr></thead><tbody>`;
+    let h = `<thead><tr><th>Categoría (miles de ha)</th>${series.map(s => `<th title="${s.nombre || ''}">${s.anio}${s.malla ? '' : '*'}<br><span style="font-weight:500;text-transform:none;letter-spacing:0">${etiquetaFuente(s.k)}</span></th>`).join('')}<th>Cambio ${a0.anio}–${a1.anio}</th></tr></thead><tbody>`;
     cats.forEach(c => {
       const dif = (a1.t[c.k] || 0) - (a0.t[c.k] || 0);
       h += `<tr><td><span class="chip" style="background:${COL[c.k]}"></span>${c.n}</td>${series.map(s => `<td>${mil(s.t[c.k] || 0)}</td>`).join('')}<td class="${dif < 0 ? 'neg' : dif > 0 ? 'pos' : ''}">${dif > 0 ? '+' : ''}${mil(dif)}</td></tr>`;
@@ -764,10 +767,19 @@ header.top nav a:focus-visible { outline: 2px solid var(--accent); outline-offse
     const st = document.getElementById('selTerrC');
     st.appendChild(new Option('Todo el país', 'todo'));
     deptos.features.map(f => f.properties).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')).forEach(p => st.appendChild(new Option(p.nombre, p.id)));
-    st.addEventListener('change', e => { terrC = e.target.value; lyDeptos2.setStyle(f => ({ weight: f.properties.id === terrC ? 3 : 1 })); comparar(); });
+    st.addEventListener('change', e => { elegirTerrC(e.target.value); comparar(); });
     comparar();
   }
+  function elegirTerrC(id) {
+    terrC = id; document.getElementById('selTerrC').value = id;
+    lyDeptos2.setStyle(f => ({ weight: f.properties.id === terrC ? 3 : 1 }));
+    if (id === 'todo') map2.fitBounds(lyDeptos2.getBounds(), { padding: [10, 10] });
+    else lyDeptos2.eachLayer(l => { if (l.feature.properties.id === id) map2.fitBounds(l.getBounds(), { padding: [20, 20] }); });
+  }
   function comparar() {
+    // si una capa solo cubre un departamento (p. ej. el piloto de Usulután), enfocar ese departamento
+    const alc = [idA, idB].map(k => sup[k] && sup[k].alcance).find(Boolean);
+    if (alc && terrC !== alc) elegirTerrC(alc);
     if (lyA) map2.removeLayer(lyA); if (lyB) map2.removeLayer(lyB);
     lyA = crearCapa(idA, 'izq').addTo(map2); lyB = crearCapa(idB, 'der').addTo(map2); cort2.recortar();
     const a = capaInfo(idA), b = capaInfo(idB);
@@ -792,21 +804,32 @@ header.top nav a:focus-visible { outline: 2px solid var(--accent); outline-offse
     }
     document.getElementById('difNota').textContent = 'pp = puntos porcentuales (B menos A), sobre la superficie total de cada periodo.' +
       (a.tipo !== b.tipo ? ' Ojo: A y B vienen de fuentes distintas (malla y mapa), así que parte de la diferencia viene del método y no del terreno.' : '');
-    // matriz de cambio: solo cuando ambos periodos son de la malla (mismas parcelas)
+    // matriz de cambio: con la malla (mismas parcelas) o con dos mapas comparados píxel a píxel
     const mz = document.getElementById('matriz');
-    if (a.tipo !== 'malla' || b.tipo !== 'malla' || idA === idB) {
-      mz.innerHTML = '<p class="nota" style="margin:0">La matriz se arma con las mismas parcelas en los dos periodos, así que solo aparece cuando A y B son años de la malla de puntos. Con los mapas 2016, 2020 y 2025 se calculará píxel a píxel.</p>';
+    const M = {}; let cambio = 0, tot = 0, mapas = false;
+    const sumar = (x, y, v) => { M[x] = M[x] || {}; M[x][y] = (M[x][y] || 0) + v; tot += v; if (x !== y) cambio += v; };
+    if (a.tipo === 'malla' && b.tipo === 'malla' && idA !== idB) {
+      const iA = malla.campos.indexOf('ipcc' + String(a.anio).slice(2)), iB = malla.campos.indexOf('ipcc' + String(b.anio).slice(2));
+      malla.filas.forEach(f => {
+        if (terrC !== 'todo' && f[3] !== terrC) return;
+        sumar(IPCC_COD[f[iA]] || 'SD', IPCC_COD[f[iB]] || 'SD', 100);
+      });
+    } else if (a.tipo !== 'malla' && b.tipo !== 'malla' && (matrices[idA + '|' + idB] || matrices[idB + '|' + idA])) {
+      mapas = true;
+      const dir = matrices[idA + '|' + idB], mat = dir || matrices[idB + '|' + idA];
+      Object.entries(mat.deptos).forEach(([d, filas]) => {
+        if (terrC !== 'todo' && d !== terrC) return;
+        Object.entries(filas).forEach(([x, cols]) => Object.entries(cols).forEach(([y, v]) => dir ? sumar(x, y, v) : sumar(y, x, v)));
+      });
+    }
+    if (!tot) {
+      mz.innerHTML = '<p class="nota" style="margin:0">La matriz aparece cuando A y B son años de la malla de puntos (mismas parcelas) o dos mapas que se cruzaron píxel a píxel (por ahora, MARN 2016 y Piloto 5d en Usulután).</p>';
       return;
     }
-    const iA = malla.campos.indexOf('ipcc' + String(a.anio).slice(2)), iB = malla.campos.indexOf('ipcc' + String(b.anio).slice(2));
-    const M = {}; let cambio = 0, tot = 0;
-    malla.filas.forEach(f => {
-      if (terrC !== 'todo' && f[3] !== terrC) return;
-      const x = IPCC_COD[f[iA]] || 'SD', y = IPCC_COD[f[iB]] || 'SD';
-      M[x] = M[x] || {}; M[x][y] = (M[x][y] || 0) + 100; tot += 100; if (x !== y) cambio += 100;
-    });
     const cats = IPCC.filter(c => M[c.k] || Object.values(M).some(r => r[c.k]));
-    let h = `<div class="kpi" style="margin-bottom:10px"><div><b>${fmt(cambio)} ha</b><span>cambiaron de categoría</span></div><div><b>${pct(cambio / tot)}</b><span>del territorio</span></div></div>`;
+    let h = mapas
+      ? `<div class="kpi" style="margin-bottom:10px"><div><b>${pct((tot - cambio) / tot)}</b><span>coincide la categoría IPCC</span></div><div><b>${fmt(cambio)} ha</b><span>con categoría distinta</span></div></div>`
+      : `<div class="kpi" style="margin-bottom:10px"><div><b>${fmt(cambio)} ha</b><span>cambiaron de categoría</span></div><div><b>${pct(cambio / tot)}</b><span>del territorio</span></div></div>`;
     h += `<div class="tabla-wrap"><table class="matriz"><thead><tr><th>A ${a.anio} \\ B ${b.anio}</th>${cats.map(c => `<th title="${c.n}">${c.k}</th>`).join('')}</tr></thead><tbody>`;
     cats.forEach(r => {
       h += `<tr><th title="${r.n}" style="text-align:left"><span class="chip" style="background:${COL[r.k]}"></span>${r.k}</th>` + cats.map(c => {
@@ -814,7 +837,9 @@ header.top nav a:focus-visible { outline: 2px solid var(--accent); outline-offse
         return `<td class="${r.k === c.k ? 'diag' : v === 0 ? 'cero' : ''}" title="${r.n} → ${c.n}: ${fmt(v)} ha">${mil(v)}</td>`;
       }).join('') + '</tr>';
     });
-    h += '</tbody></table></div><p class="nota" style="margin:8px 0 0">Miles de ha. Filas: categoría en A; columnas: categoría en B. La diagonal es lo que se mantuvo; fuera de ella están las conversiones (por ejemplo, F → C es tierra forestal convertida en cultivo). Es el formato de los datos de actividad de UTCUTS.</p>';
+    h += '</tbody></table></div><p class="nota" style="margin:8px 0 0">' + (mapas
+      ? 'Miles de ha. Filas: categoría en A; columnas: categoría en B. Como los dos mapas son del mismo año, la tabla no mide cambios: muestra en qué coinciden y en qué difieren. La diagonal es donde los dos dicen lo mismo; fuera de ella están los desacuerdos (por ejemplo, C → G es lo que A llama cultivo y B llama pastizal).'
+      : 'Miles de ha. Filas: categoría en A; columnas: categoría en B. La diagonal es lo que se mantuvo; fuera de ella están las conversiones (por ejemplo, F → C es tierra forestal convertida en cultivo). Es el formato de los datos de actividad de UTCUTS.') + '</p>';
     mz.innerHTML = h;
   }
 
@@ -834,9 +859,10 @@ header.top nav a:focus-visible { outline: 2px solid var(--accent); outline-offse
   Promise.all(['malla_puntos', 'capas', 'superficies', 'departamentos'].map(n => fetch('datos/' + n + '.json').then(r => { if (!r.ok) throw new Error(n); return r.json(); })))
     .then(([m, c, s, d]) => {
       malla = m; capas = c; sup = s; deptos = d;
+      fetch('datos/matrices.json').then(r => r.ok ? r.json() : {}).then(x => { matrices = x || {}; if (map2) comparar(); }).catch(() => {});
       catalogo = [2001, 2011, 2018].map(a => ({ id: 'malla' + a, anio: a, tipo: 'malla', nombre: 'Malla de puntos ' + a, desc: '21,103 parcelas, categoría IPCC' }))
         .concat(capas.map(x => Object.assign({ tipo: 'raster', desc: x.fuente.split('(')[0].trim() }, x)))
-        .sort((a, b) => a.anio - b.anio);
+        .sort((a, b) => a.anio - b.anio || prioridad(a.id) - prioridad(b.id));
       izqId = 'malla2018'; derId = 'lc2023';
       const st = document.getElementById('selTerr'); st.appendChild(new Option('Todo el país', 'todo'));
       deptos.features.map(f => f.properties).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')).forEach(p => st.appendChild(new Option(p.nombre, p.id)));
