@@ -7,7 +7,7 @@ Página web estática (sin servidor) para mostrar los productos de cobertura del
 - Mapa LC Sentinel 2023 (el que usó el INGEI 2023).
 - Comparación con cortina entre dos capas.
 - Superficie por categoría IPCC (F, C, G, W, S, O) por año, para el país o un departamento.
-- Espacios reservados para el mapa oficial MARN 2016 y el Piloto 5d.
+- Mapa oficial MARN 2016 (nacional) y Piloto 5d Sentinel 2016 (Usulután), con matriz de coincidencia MARN vs piloto.
 
 ## Carpetas
 - La raíz del repositorio es el visor completo: `index.html` + `datos/`. Se abre con cualquier servidor web (GitHub Pages, ArcGIS Online como sitio, servidor del MARN).
@@ -22,6 +22,9 @@ Página web estática (sin servidor) para mostrar los productos de cobertura del
    `python3 herramientas/preparar_datos_visor.py visor_marn2016.tif . --capa marn2016 --leyenda herramientas/leyendas/leyenda_marn2016.json`
    (requiere Python con rasterio, numpy, scipy, shapely y pillow; Claude puede correrlo en la nube).
 4. La capa aparece sola en el visor, en la lista de capas, en la cortina y en la tabla de superficies.
+
+## Matriz entre dos mapas
+`python3 herramientas/herramienta_matriz.py marn2016 visor_marn2016.tif herramientas/leyendas/leyenda_marn2016.json p5d2016 visor_p5d2016.tif herramientas/leyendas/leyenda_p5d2016.json .`
 
 ## Regenerar todo desde cero
 `python3 herramientas/preparar_datos_visor.py malla_parcelas_GEE.csv . --lc2023 LC_SENTINEL_20231.tif`
